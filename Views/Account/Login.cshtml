@@ -1,0 +1,123 @@
+@{
+    ViewData["Title"] = "Giriş Yap / Kaydol";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            @{
+                var signupSuccess = TempData["SignUpSuccess"] as bool?;
+                var newUsername = TempData["NewUsername"] as string;
+            }
+            @if (signupSuccess == true)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>Başarılı!</strong> Hesabınız başarıyla oluşturuldu. Hoşgeldiniz <strong>@(newUsername ?? "Kullanıcı")</strong>! Lütfen giriş yapın.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <!-- Nav Tabs -->
+            <ul class="nav nav-tabs" id="authTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">
+                        Giriş Yap
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab" aria-controls="signup" aria-selected="false">
+                        Kaydol
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="authTabsContent">
+                <!-- Login Tab -->
+                <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                    <div class="card">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-4">Giriş Yap</h5>
+                            <form method="post" asp-action="Login">
+                                <div class="mb-3">
+                                    <label for="loginEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="loginEmail" name="email" placeholder="example@gmail.com" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="loginPassword" class="form-label">Şifre</label>
+                                    <input type="password" class="form-control" id="loginPassword" name="password" placeholder="Şifrenizi girin" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+                            </form>
+
+                            @if (ViewData.ModelState.Count > 0 && !ViewData.ModelState.IsValid)
+                            {
+                                <div class="alert alert-danger mt-3">
+                                    @foreach (var modelState in ViewData.ModelState.Values)
+                                    {
+                                        @foreach (var error in modelState.Errors)
+                                        {
+                                            <p>@error.ErrorMessage</p>
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SignUp Tab -->
+                <div class="tab-pane fade" id="signup" role="tabpanel" aria-labelledby="signup-tab">
+                    <div class="card">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-4">Kaydol</h5>
+                            <form method="post" asp-action="SignUp">
+                                <div class="mb-3">
+                                    <label for="signupUsername" class="form-label">Kullanıcı Adı</label>
+                                    <input type="text" class="form-control" id="signupUsername" name="username" placeholder="Kullanıcı adı girin" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="signupEmail" name="email" placeholder="example@gmail.com" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupPassword" class="form-label">Şifre</label>
+                                    <input type="password" class="form-control" id="signupPassword" name="password" placeholder="Şifrenizi girin" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Şifreyi Onayla</label>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Şifrenizi tekrar girin" required>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Kaydol</button>
+                            </form>
+
+                            @if (ViewData.ModelState.Count > 0 && !ViewData.ModelState.IsValid)
+                            {
+                                <div class="alert alert-danger mt-3">
+                                    @foreach (var modelState in ViewData.ModelState.Values)
+                                    {
+                                        @foreach (var error in modelState.Errors)
+                                        {
+                                            <p>@error.ErrorMessage</p>
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nav-tabs .nav-link {
+        color: #6c757d;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #495057;
+        font-weight: 600;
+    }
+</style>

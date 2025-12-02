@@ -1,0 +1,32 @@
+@model PowerUp.Models.Gym
+
+@{
+    ViewData["Title"] = "Spor Salonunu Sil";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Spor Salonunu Sil</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>Dikkat!</strong> Bu işlem geri alınamaz.
+                    </div>
+                    <p>Şu spor salonunu silmek istediğinize emin misiniz?</p>
+                    <p><strong>@Model.Name</strong> - @Model.Address</p>
+
+                    <form method="post">
+                        <input type="hidden" name="id" value="@Model.Id">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-danger">Evet, Sil</button>
+                            <a class="btn btn-secondary" asp-action="List">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

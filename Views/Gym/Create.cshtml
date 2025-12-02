@@ -1,0 +1,41 @@
+@model PowerUp.Models.Gym
+
+@{
+    ViewData["Title"] = "Spor Salonu Ekle";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Yeni Spor Salonu Ekle</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Create">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">İsim</label>
+                            <input type="text" class="form-control" id="name" name="name" asp-for="Name" placeholder="Spor salonu adını girin" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Adres</label>
+                            <input type="text" class="form-control" id="address" name="address" asp-for="Address" placeholder="Spor salonu adresini girin" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="monthlyPrice" class="form-label">Aylık Fiyat (₺)</label>
+                            <input type="number" class="form-control" id="monthlyPrice" name="monthlyPrice" asp-for="MonthlyPrice" placeholder="Aylık fiyatı girin" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="annuallyPrice" class="form-label">Yıllık Fiyat (₺)</label>
+                            <input type="number" class="form-control" id="annuallyPrice" name="annuallyPrice" asp-for="AnnuallyPrice" placeholder="Yıllık fiyatı girin" required>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">Ekle</button>
+                            <a class="btn btn-secondary" asp-action="List">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

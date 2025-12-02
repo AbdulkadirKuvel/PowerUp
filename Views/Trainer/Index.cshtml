@@ -1,0 +1,59 @@
+@model List<PowerUp.Models.Trainer>
+
+@{
+    ViewData["Title"] = "Antrenörler";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>@ViewData["Title"]</h1>
+        </div>
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="col-auto">
+                <a class="btn btn-primary" asp-action="Create">+ Antrenör Ekle</a>
+            </div>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="alert alert-info">Henüz antrenör bulunmamaktadır.</div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var trainer in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@trainer.Name</h5>
+                            <p class="card-text">
+                                <strong>Telefon:</strong> @trainer.PhoneNumber<br>
+                                <strong>Hizmet Sayısı:</strong> @(trainer.TrainerServices?.Count ?? 0)
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <a class="btn btn-info btn-sm" asp-action="Detail" asp-route-id="@trainer.Id">Detayları Gör</a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@trainer.Id">Düzenle</a>
+                                <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@trainer.Id" onclick="return confirm('Silmek istediğinizden emin misiniz?')">Sil</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

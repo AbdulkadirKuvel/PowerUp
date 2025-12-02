@@ -1,0 +1,68 @@
+@using PowerUp.Models
+
+@{
+    ViewData["Title"] = "Antrenör Ekle";
+    var gyms = ViewBag.Gyms as List<Gym> ?? new List<Gym>();
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Yeni Antrenör Ekle</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Create">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">İsim</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                placeholder="Antrenör adını girin" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phoneNumber" class="form-label">Telefon Numarası</label>
+                            <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber"
+                                placeholder="+90 5XX XXX XX XX" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-Posta (Trainer Hesabı İçin)</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                placeholder="trainer@example.com" required>
+                            <small class="text-muted">Bu e-posta ile trainer giriş yapacaktır</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Şifre (Trainer Hesabı İçin)</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                placeholder="Güçlü bir şifre girin" required>
+                            <small class="text-muted">En az 6 karakter, büyük harf ve sayı içermeli</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gymId" class="form-label">Spor Salonu Seçin</label>
+                            <select class="form-control" id="gymId" name="gymId" required>
+                                <option value="">-- Spor Salonu Seçiniz --</option>
+                                @foreach (var gym in gyms)
+                                {
+                                    <option value="@gym.Id">@gym.Name</option>
+                                }
+                            </select>
+                            @if (gyms.Count == 0)
+                            {
+                                <small class="text-danger">Önce spor salonu eklemeniz gereklidir.</small>
+                            }
+                        </div>
+                        @if (ViewBag.ErrorMessage != null)
+                        {
+                            <div class="alert alert-danger">
+                                @ViewBag.ErrorMessage
+                            </div>
+                        }
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary" @(gyms.Count == 0 ? "disabled" : "")>Ekle</button>
+                            <a class="btn btn-secondary" asp-action="Index">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

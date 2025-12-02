@@ -1,0 +1,215 @@
+@using PowerUp.Models
+
+@model Trainer
+
+@{
+    ViewData["Title"] = "Randevu Al";
+    string[] days = { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
+    
+    // Expand weekly slots to all days
+    var expandedSlots = new List<ScheduleSlot>();
+    if (Model.ScheduleSlots != null)
+    {
+        foreach (var slot in Model.ScheduleSlots)
+        {
+            if (slot.IsWeekly)
+            {
+                // Create a slot for each day of the week
+                for (int i = 0; i < 7; i++)
+                {
+                    expandedSlots.Add(new ScheduleSlot
+                    {
+                        Id = slot.Id,
+                        DayOfWeek = i,
+                        StartTime = slot.StartTime,
+                        EndTime = slot.EndTime,
+                        TrainerId = slot.TrainerId,
+                        IsWeekly = slot.IsWeekly,
+                        ScheduleSlotServices = slot.ScheduleSlotServices
+                    });
+                }
+            }
+            else
+            {
+                expandedSlots.Add(slot);
+            }
+        }
+    }
+    
+    // Find the time range
+    int startHour = expandedSlots.Any() ? expandedSlots.Min(s => s.StartTime.Hour) : 6;
+    int endHour = expandedSlots.Any() ? expandedSlots.Max(s => s.EndTime.Hour) : 22;
+    
+    // Ensure reasonable bounds
+    startHour = Math.Max(0, startHour - 1);
+    endHour = Math.Min(23, endHour + 1);
+}
+
+<div class="container-fluid mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>@Model.Name ile Randevu Al</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a class="btn btn-secondary" asp-action="Detail" asp-route-id="@Model.Id">Geri Dön</a>
+        </div>
+    </div>
+
+    @if (Model.ScheduleSlots == null || Model.ScheduleSlots.Count == 0)
+    {
+        <div class="alert alert-warning">
+            Bu eğitmenci henüz hiçbir zaman dilimi eklememişdir. Lütfen daha sonra kontrol ediniz.
+        </div>
+    }
+    else
+    {
+        <form method="post" asp-action="BookAppointment">
+            <input type="hidden" name="trainerId" value="@Model.Id">
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Uygun Saatleri Seç</h5>
+                </div>
+                <div class="card-body">
+                    <style>
+                        .appointment-grid {
+                            display: grid;
+                            grid-template-columns: 80px repeat(7, 1fr);
+                            gap: 1px;
+                            background-color: #ddd;
+                            padding: 1px;
+                            border-radius: 4px;
+                            overflow-x: auto;
+                        }
+                        
+                        .appointment-cell {
+                            background-color: white;
+                            border: 1px solid #ddd;
+                            padding: 4px;
+                            min-height: 40px;
+                            position: relative;
+                            font-size: 12px;
+                        }
+                        
+                        .appointment-header-day {
+                            background-color: #0d6efd;
+                            color: white;
+                            font-weight: bold;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 8px 4px;
+                        }
+                        
+                        .appointment-header-time {
+                            background-color: #6c757d;
+                            color: white;
+                            font-weight: bold;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 4px;
+                            font-size: 11px;
+                        }
+                        
+                        .slot-radio-block {
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            padding: 6px;
+                            border-radius: 3px;
+                            margin-bottom: 2px;
+                            border-left: 4px solid #764ba2;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            font-size: 11px;
+                            line-height: 1.2;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        }
+                        
+                        .slot-radio-block:hover {
+                            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+                            transform: translateY(-2px);
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                        }
+                        
+                        .slot-radio-block input[type="radio"] {
+                            cursor: pointer;
+                        }
+                        
+                        .slot-time {
+                            font-weight: bold;
+                            font-size: 11px;
+                        }
+                        
+                        .appointment-container {
+                            overflow-x: auto;
+                        }
+                    </style>
+                    
+                    <div class="appointment-container">
+                        <div class="appointment-grid">
+                            <!-- Header row with day names -->
+                            <div class="appointment-cell appointment-header-time">Saat</div>
+                            @for (int day = 0; day < 7; day++)
+                            {
+                                <div class="appointment-cell appointment-header-day">@days[day]</div>
+                            }
+                            
+                            <!-- Time rows -->
+                            @for (int hour = startHour; hour < endHour; hour++)
+                            {
+                                <div class="appointment-cell appointment-header-time">@hour:00</div>
+                                
+                                @for (int day = 0; day < 7; day++)
+                                {
+                                    <div class="appointment-cell">
+                                        @{
+                                            var slotsForCell = expandedSlots
+                                                .Where(s => s.DayOfWeek == day && s.StartTime.Hour <= hour && s.EndTime.Hour > hour)
+                                                .Distinct()
+                                                .ToList();
+                                        }
+                                        
+                                        @foreach (var slot in slotsForCell)
+                                        {
+                                            <label class="slot-radio-block" title="@slot.StartTime.ToString("HH:mm") - @slot.EndTime.ToString("HH:mm")">
+                                                <input type="radio" name="scheduleSlotId" value="@slot.Id" required>
+                                                <span>
+                                                    <div class="slot-time">@slot.StartTime.ToString("HH:mm")-@slot.EndTime.ToString("HH:mm")</div>
+                                                    @if (slot.ScheduleSlotServices?.Count > 0)
+                                                    {
+                                                        <div style="font-size: 10px;">@string.Join(", ", slot.ScheduleSlotServices.Take(1).Select(ss => ss.Service?.Name ?? ""))</div>
+                                                    }
+                                                </span>
+                                            </label>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="appointmentDate" class="form-label">Tarih Seç</label>
+                        <input type="date" class="form-control" id="appointmentDate" name="appointmentDate" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notlar (İsteğe Bağlı)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Örn: Özel istekler, tıbbi durumlar..."></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-success">Randevu Al</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+</div>
