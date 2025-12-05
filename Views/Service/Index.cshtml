@@ -1,0 +1,69 @@
+@using PowerUp.Models
+@using PowerUp.Utility
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+@model List<Service>
+
+@{
+    ViewData["Title"] = "Hizmetler";
+    var user = await UserManager.GetUserAsync(User);
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Hizmetler</h2>
+        </div>
+        @if (User.IsInRole(Roles.RoleAdmin))
+        {
+            <div class="col-md-4 text-end">
+                <a class="btn btn-success" asp-action="Create">+ Hizmet Ekle</a>
+            </div>
+        }
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info">
+            Henüz hizmet eklenmemiştir.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var service in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">@service.Name</h5>
+                            <p class="card-text text-muted">
+                                @if (service.TrainerServices != null && service.TrainerServices.Count > 0)
+                                {
+                                    <span>@service.TrainerServices.Count eğitmenci tarafından sunulmaktadır</span>
+                                }
+                                else
+                                {
+                                    <span>Henüz hiçbir eğitmenci bu hizmeti sunmamaktadır</span>
+                                }
+                            </p>
+                            <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@service.Id">
+                                Detayları Gör
+                            </a>
+                            @if (User.IsInRole(Roles.RoleAdmin))
+                            {
+                                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@service.Id">
+                                    Düzenle
+                                </a>
+                                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@service.Id">
+                                    Sil
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

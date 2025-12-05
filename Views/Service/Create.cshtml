@@ -1,0 +1,30 @@
+@model PowerUp.Models.Service
+
+@{
+    ViewData["Title"] = "Hizmet Ekle";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Yeni Hizmet Ekle</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Create">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Hizmet Adı</label>
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="Örn: Yoga, Pilates, Yüzme">
+                            <span class="text-danger">@Html.ValidationMessage("name")</span>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-success">Ekle</button>
+                            <a class="btn btn-secondary" asp-action="Index">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
