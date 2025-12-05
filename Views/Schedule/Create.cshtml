@@ -1,0 +1,143 @@
+@model PowerUp.Models.ScheduleSlot
+
+@{
+    ViewData["Title"] = "Zaman Dilimi Ekle";
+    string[] days = { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
+    var trainerServices = ViewBag.TrainerServices as List<TrainerService> ?? new List<TrainerService>();
+}
+
+<div class="container-fluid mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Yeni Zaman Dilimi Ekle</h5>
+                </div>
+                <div class="card-body">
+                    @if (!trainerServices.Any())
+                    {
+                        <div class="alert alert-warning">
+                            <strong>Uyarı:</strong> Önce hizmet eklemeniz gerekiyor. <a href="@Url.Action("MyServices", "Trainer")">Hizmetleri Yönet</a>
+                        </div>
+                    }
+
+                    <form method="post" asp-action="Create">
+                        <!-- Error Messages -->
+                        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <strong>Hata!</strong>
+                                @foreach (var modelState in ViewData.ModelState.Values)
+                                {
+                                    @foreach (var error in modelState.Errors)
+                                    {
+                                        <div>@error.ErrorMessage</div>
+                                    }
+                                }
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        <!-- Slot Type Selection -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Zaman Dilimi Türü</h6>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="slotType" id="specificDay" value="specific" checked onchange="updateDaySelection()">
+                                            <label class="form-check-label" for="specificDay">
+                                                <strong>Belirli Bir Gün</strong> - Sadece seçtiğiniz günde uygulanır
+                                            </label>
+                                        </div>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="radio" name="slotType" id="everyDay" value="everyday" onchange="updateDaySelection()">
+                                            <label class="form-check-label" for="everyDay">
+                                                <strong>Her Gün</strong> - Hafta boyunca her gün uygulanır
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Day Selection (hidden for everyday) -->
+                        <div class="row mb-4" id="daySelectionDiv">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dayOfWeek" class="form-label">Gün</label>
+                                    <select class="form-control" id="dayOfWeek" name="dayOfWeek">
+                                        <option value="-1">-- Gün Seçiniz --</option>
+                                        @for (int i = 0; i < days.Length; i++)
+                                        {
+                                            <option value="@i">@days[i]</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Time Selection -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="startTime" class="form-label">Başlangıç Saati</label>
+                                    <input type="time" class="form-control" id="startTime" name="startTime" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="endTime" class="form-label">Bitiş Saati</label>
+                                    <input type="time" class="form-control" id="endTime" name="endTime" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Services Selection -->
+                        @if (trainerServices.Any())
+                        {
+                            <div class="mb-4">
+                                <label class="form-label"><strong>Hizmetler</strong> *</label>
+                                <div class="border p-3 rounded" style="max-height: 300px; overflow-y: auto; background-color: #f8f9fa;">
+                                    @foreach (var service in trainerServices)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="selectedServices" id="service_@service.ServiceId" value="@service.ServiceId">
+                                            <label class="form-check-label" for="service_@service.ServiceId">
+                                                @service.Service?.Name
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                                <small class="text-muted">En az bir hizmet seçmelisiniz</small>
+                            </div>
+                        }
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-success" @(trainerServices.Any() ? "" : "disabled")>Ekle</button>
+                            <a class="btn btn-secondary" asp-action="MySchedule">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateDaySelection() {
+    const isEveryDay = document.getElementById('everyDay').checked;
+    document.getElementById('daySelectionDiv').style.display = isEveryDay ? 'none' : 'flex';
+    
+    if (isEveryDay) {
+        document.getElementById('dayOfWeek').removeAttribute('required');
+    } else {
+        document.getElementById('dayOfWeek').setAttribute('required', 'required');
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateDaySelection();
+});
+</script>

@@ -1,0 +1,111 @@
+@model PowerUp.Models.ScheduleSlot
+
+@{
+    ViewData["Title"] = "Zaman Dilimini Düzenle";
+    string[] days = { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
+    var trainerServices = ViewBag.TrainerServices as List<TrainerService> ?? new List<TrainerService>();
+    var selectedServiceIds = ViewBag.SelectedServiceIds as List<int> ?? new List<int>();
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Zaman Dilimini Düzenle</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Edit">
+                        <input type="hidden" name="id" value="@Model.Id">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dayOfWeek" class="form-label">Gün</label>
+                                    <select class="form-control" id="dayOfWeek" name="dayOfWeek" required>
+                                        <option value="-1">-- Gün Seçiniz --</option>
+                                        @for (int i = 0; i < days.Length; i++)
+                                        {
+                                            if (i == Model.DayOfWeek)
+                                            {
+                                                <option value="@i" selected>@days[i]</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@i">@days[i]</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Ayarlar</label>
+                                    <div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="isWeekly" id="repeatWeekly" value="true" @(Model.IsWeekly ? "checked" : "")>
+                                            <label class="form-check-label" for="repeatWeekly">
+                                                Her Gün Tekrarla (Haftalık)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="startTime" class="form-label">Başlangıç Saati</label>
+                                    <input type="time" class="form-control" id="startTime" name="startTime" value="@Model.StartTime.ToString("HH:mm")" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="endTime" class="form-label">Bitiş Saati</label>
+                                    <input type="time" class="form-control" id="endTime" name="endTime" value="@Model.EndTime.ToString("HH:mm")" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (trainerServices.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Hizmetler</label>
+                                <div class="border p-3 rounded" style="max-height: 300px; overflow-y: auto;">
+                                    @foreach (var service in trainerServices)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="selectedServices" id="service_@service.ServiceId" value="@service.ServiceId" @(selectedServiceIds.Contains(service.ServiceId) ? "checked" : "")>
+                                            <label class="form-check-label" for="service_@service.ServiceId">
+                                                @service.Service?.Name
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                @foreach (var modelState in ViewData.ModelState.Values)
+                                {
+                                    @foreach (var error in modelState.Errors)
+                                    {
+                                        <p>@error.ErrorMessage</p>
+                                    }
+                                }
+                            </div>
+                        }
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-warning">Güncelle</button>
+                            <a class="btn btn-secondary" asp-action="MySchedule">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
