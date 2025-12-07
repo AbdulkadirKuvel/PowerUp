@@ -77,18 +77,37 @@
                             </div>
                         </div>
 
-                        <!-- Time Selection -->
+                        <!-- Gym Selection -->
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="startTime" class="form-label">Başlangıç Saati</label>
-                                    <input type="time" class="form-control" id="startTime" name="startTime" required>
+                                    <label for="gymId" class="form-label">Spor Merkezi</label>
+                                    <select class="form-select" id="gymId" name="gymId" required>
+                                        <option value="0">-- Spor Merkezi Seçiniz --</option>
+                                        @{
+                                            var gym = ViewBag.TrainerGym;
+                                            if (gym != null)
+                                            {
+                                                <option value="@gym.Id" selected>@gym.Name</option>
+                                            }
+                                        }
+                                    </select>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Hour Selection -->
+                        <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="endTime" class="form-label">Bitiş Saati</label>
-                                    <input type="time" class="form-control" id="endTime" name="endTime" required>
+                                    <label for="hour" class="form-label">Saat (1 Saatlik Oturum)</label>
+                                    <select class="form-select" id="hour" name="hour" required>
+                                        <option value="-1">-- Saat Seçiniz --</option>
+                                        @for (int h = 0; h < 24; h++)
+                                        {
+                                            <option value="@h">@h:00 - @(h + 1):00</option>
+                                        }
+                                    </select>
                                 </div>
                             </div>
                         </div>

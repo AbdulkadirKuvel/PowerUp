@@ -6,47 +6,30 @@
     ViewData["Title"] = "Randevu Al";
     string[] days = { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
     
-    // Expand weekly slots to all days
-    var expandedSlots = new List<ScheduleSlot>();
+    // Group slots by day
+    var slotsByDay = new List<ScheduleSlot>[7];
+    for (int i = 0; i < 7; i++) slotsByDay[i] = new List<ScheduleSlot>();
+    
     if (Model.ScheduleSlots != null)
     {
         foreach (var slot in Model.ScheduleSlots)
         {
-            if (slot.IsWeekly)
-            {
-                // Create a slot for each day of the week
-                for (int i = 0; i < 7; i++)
-                {
-                    expandedSlots.Add(new ScheduleSlot
-                    {
-                        Id = slot.Id,
-                        DayOfWeek = i,
-                        StartTime = slot.StartTime,
-                        EndTime = slot.EndTime,
-                        TrainerId = slot.TrainerId,
-                        IsWeekly = slot.IsWeekly,
-                        ScheduleSlotServices = slot.ScheduleSlotServices
-                    });
-                }
-            }
-            else
-            {
-                expandedSlots.Add(slot);
-            }
+            slotsByDay[slot.DayOfWeek].Add(slot);
         }
     }
     
-    // Find the time range
-    int startHour = expandedSlots.Any() ? expandedSlots.Min(s => s.StartTime.Hour) : 6;
-    int endHour = expandedSlots.Any() ? expandedSlots.Max(s => s.EndTime.Hour) : 22;
+    // Find the hour range
+    var allSlots = Model.ScheduleSlots ?? new List<ScheduleSlot>();
+    int startHour = allSlots.Any() ? allSlots.Min(s => s.Hour) : 6;
+    int endHour = allSlots.Any() ? allSlots.Max(s => s.Hour) : 22;
     
     // Ensure reasonable bounds
     startHour = Math.Max(0, startHour - 1);
     endHour = Math.Min(23, endHour + 1);
 }
 
-<div class="container-fluid mt-5">
-    <div class="row mb-4">
+<div class="container-fluid mt-5 px-0">
+    <div class="row mb-4 mx-3">
         <div class="col-md-8">
             <h2>@Model.Name ile Randevu Al</h2>
         </div>
@@ -57,7 +40,7 @@
 
     @if (Model.ScheduleSlots == null || Model.ScheduleSlots.Count == 0)
     {
-        <div class="alert alert-warning">
+        <div class="alert alert-warning mx-3">
             Bu eğitmenci henüz hiçbir zaman dilimi eklememişdir. Lütfen daha sonra kontrol ediniz.
         </div>
     }
@@ -66,11 +49,11 @@
         <form method="post" asp-action="BookAppointment">
             <input type="hidden" name="trainerId" value="@Model.Id">
             
-            <div class="card mb-4">
+            <div class="card mx-3 mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">Uygun Saatleri Seç</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <style>
                         .appointment-grid {
                             display: grid;
@@ -85,10 +68,12 @@
                         .appointment-cell {
                             background-color: white;
                             border: 1px solid #ddd;
-                            padding: 4px;
-                            min-height: 40px;
+                            padding: 6px;
+                            min-height: 50px;
                             position: relative;
                             font-size: 12px;
+                            word-wrap: break-word;
+                            overflow: hidden;
                         }
                         
                         .appointment-header-day {
@@ -98,7 +83,8 @@
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            padding: 8px 4px;
+                            padding: 12px 6px;
+                            min-height: 50px;
                         }
                         
                         .appointment-header-time {
@@ -108,8 +94,9 @@
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            padding: 4px;
+                            padding: 6px;
                             font-size: 11px;
+                            min-height: 50px;
                         }
                         
                         .slot-radio-block {
@@ -124,7 +111,7 @@
                             font-size: 11px;
                             line-height: 1.2;
                             display: flex;
-                            align-items: center;
+                            align-items: flex-start;
                             gap: 4px;
                         }
                         
@@ -136,6 +123,8 @@
                         
                         .slot-radio-block input[type="radio"] {
                             cursor: pointer;
+                            margin-top: 2px;
+                            flex-shrink: 0;
                         }
                         
                         .slot-time {
@@ -145,6 +134,7 @@
                         
                         .appointment-container {
                             overflow-x: auto;
+                            padding: 12px;
                         }
                     </style>
                     
@@ -166,18 +156,17 @@
                                 {
                                     <div class="appointment-cell">
                                         @{
-                                            var slotsForCell = expandedSlots
-                                                .Where(s => s.DayOfWeek == day && s.StartTime.Hour <= hour && s.EndTime.Hour > hour)
-                                                .Distinct()
+                                            var slotsForCell = slotsByDay[day]
+                                                .Where(s => s.Hour == hour)
                                                 .ToList();
                                         }
                                         
                                         @foreach (var slot in slotsForCell)
                                         {
-                                            <label class="slot-radio-block" title="@slot.StartTime.ToString("HH:mm") - @slot.EndTime.ToString("HH:mm")">
+                                            <label class="slot-radio-block" title="@slot.Hour:00 - @(slot.Hour + 1):00 - @slot.Gym?.Name">
                                                 <input type="radio" name="scheduleSlotId" value="@slot.Id" required>
                                                 <span>
-                                                    <div class="slot-time">@slot.StartTime.ToString("HH:mm")-@slot.EndTime.ToString("HH:mm")</div>
+                                                    <div class="slot-time">@slot.Gym?.Name</div>
                                                     @if (slot.ScheduleSlotServices?.Count > 0)
                                                     {
                                                         <div style="font-size: 10px;">@string.Join(", ", slot.ScheduleSlotServices.Take(1).Select(ss => ss.Service?.Name ?? ""))</div>
@@ -193,7 +182,7 @@
                 </div>
             </div>
 
-            <div class="card mb-4">
+            <div class="card mx-3 mb-4">
                 <div class="card-body">
                     <div class="mb-3">
                         <label for="appointmentDate" class="form-label">Tarih Seç</label>

@@ -15,9 +15,9 @@
         slotsByDay[slot.DayOfWeek].Add(slot);
     }
     
-    // Find the time range
-    int startHour = Model.Any() ? Model.Min(s => s.StartTime.Hour) : 6;
-    int endHour = Model.Any() ? Model.Max(s => s.EndTime.Hour) : 22;
+    // Find the hour range
+    int startHour = Model.Any() ? Model.Min(s => s.Hour) : 6;
+    int endHour = Model.Any() ? Model.Max(s => s.Hour) : 22;
     
     // Ensure reasonable bounds
     startHour = Math.Max(0, startHour - 1);
@@ -157,14 +157,14 @@
                         <div class="schedule-cell">
                             @{
                                 var slotsForCell = slotsByDay[day]
-                                    .Where(s => s.StartTime.Hour <= hour && s.EndTime.Hour > hour)
+                                    .Where(s => s.Hour == hour)
                                     .ToList();
                             }
                             
                             @foreach (var slot in slotsForCell)
                             {
-                                <div class="slot-block" title="@slot.StartTime.ToString("HH:mm") - @slot.EndTime.ToString("HH:mm")">
-                                    <div class="slot-time">@slot.StartTime.ToString("HH:mm")-@slot.EndTime.ToString("HH:mm")</div>
+                                <div class="slot-block" title="@slot.Hour:00 - @(slot.Hour + 1):00 - @slot.Gym?.Name">
+                                    <div class="slot-time">@slot.Gym?.Name</div>
                                     <div style="font-size: 10px; margin-top: 2px;">
                                         @if (slot.ScheduleSlotServices?.Count > 0)
                                         {

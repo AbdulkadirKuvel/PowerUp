@@ -14,7 +14,7 @@
                 </div>
                 <div class="card-body">
                     <div class="alert alert-warning">
-                        <strong>Uyarı!</strong> <span class="badge bg-danger">@days[Model.DayOfWeek] @Model.StartTime.ToString("HH:mm")-@Model.EndTime.ToString("HH:mm")</span> zaman dilimini silmek istiyor musunuz?
+                        <strong>Uyarı!</strong> <span class="badge bg-danger">@days[Model.DayOfWeek] @Model.Hour:00 - @(Model.Gym?.Name ?? "Spor Merkezi")</span> saatini silmek istiyor musunuz?
                     </div>
                     <p class="text-muted">Bu işlem geri alınamaz. Bu zaman diliminde yapılmış rezervasyonlar da silinecektir.</p>
                     <form method="post" asp-action="Delete">

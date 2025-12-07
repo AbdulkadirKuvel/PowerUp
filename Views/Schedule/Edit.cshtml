@@ -56,14 +56,31 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="startTime" class="form-label">Başlangıç Saati</label>
-                                    <input type="time" class="form-control" id="startTime" name="startTime" value="@Model.StartTime.ToString("HH:mm")" required>
+                                    <label for="gymId" class="form-label">Spor Merkezi</label>
+                                    <select class="form-select" id="gymId" name="gymId" disabled>
+                                        <option value="@ViewBag.GymId" selected>@ViewBag.TrainerGym?.Name</option>
+                                    </select>
+                                    <input type="hidden" name="gymId" value="@ViewBag.GymId">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="endTime" class="form-label">Bitiş Saati</label>
-                                    <input type="time" class="form-control" id="endTime" name="endTime" value="@Model.EndTime.ToString("HH:mm")" required>
+                                    <label for="hour" class="form-label">Saat</label>
+                                    <select class="form-select" id="hour" name="hour" required>
+                                        @{
+                                            for (int h = 0; h < 24; h++)
+                                            {
+                                                if (Model.Hour == h)
+                                                {
+                                                    <option value="@h" selected>@h:00 - @(h + 1):00</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@h">@h:00 - @(h + 1):00</option>
+                                                }
+                                            }
+                                        }
+                                    </select>
                                 </div>
                             </div>
                         </div>

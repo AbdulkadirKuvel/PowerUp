@@ -38,17 +38,19 @@
                                         <tr>
                                             <th>Gün</th>
                                             <th>Saat</th>
+                                            <th>Spor Merkezi</th>
                                             <th>Kapasite</th>
                                             <th>İşlem</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var slot in trainer.ScheduleSlots.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime))
+                                        @foreach (var slot in trainer.ScheduleSlots.OrderBy(s => s.DayOfWeek).ThenBy(s => s.Hour))
                                         {
                                             string[] days = { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
                                             <tr>
                                                 <td>@days[slot.DayOfWeek]</td>
-                                                <td>@slot.StartTime:@slot.EndTime</td>
+                                                <td>@slot.Hour:00</td>
+                                                <td>@(slot.Gym?.Name ?? "-")</td>
                                                 <td>
                                                     <span class="badge bg-secondary">@(slot.IsWeekly ? "Haftalık" : "Günlük")</span>
                                                 </td>
