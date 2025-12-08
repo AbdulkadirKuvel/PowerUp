@@ -119,7 +119,9 @@ public class AccountController : Controller
         var trainer = await _context.Trainers
             .Include(t => t.TrainerServices)
             .ThenInclude(ts => ts.Service)
-            .Include(t => t.ScheduleSlots)
+            .Include(t => t.ScheduleSlots)!
+            .ThenInclude(s => s.ScheduleSlotServices!)
+            .ThenInclude(sss => sss.Service)
             .FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
 
         ViewBag.Trainer = trainer;

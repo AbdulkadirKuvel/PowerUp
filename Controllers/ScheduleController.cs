@@ -28,72 +28,134 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
         if (trainer == null)
             return RedirectToAction("Index", "Home");
 
-        var schedules = await _context.ScheduleSlots
+        var slots = await _context.ScheduleSlots
             .Where(s => s.TrainerId == trainer.Id)
+            .Include(s => s.ScheduleSlotServices)
+            .ThenInclude(ss => ss.Service)
+            .Include(s => s.Gym)
             .OrderBy(s => s.DayOfWeek)
-            .ThenBy(s => s.StartTime)
+            .ThenBy(s => s.Hour)
             .ToListAsync();
 
-        return View(schedules);
+        return View(slots);
     }
 
     // Create new schedule slot
     [Authorize(Roles = Roles.RoleTrainer)]
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
-        return View();
-    }
-
-    [HttpPost]
-    [Authorize(Roles = Roles.RoleTrainer)]
-    public async Task<IActionResult> Create(int dayOfWeek, string startTime, string endTime, int capacity)
-    {
-        if (dayOfWeek < 0 || dayOfWeek > 6)
-        {
-            ModelState.AddModelError("", "Lütfen geçerli bir gün seçiniz.");
-            return View();
-        }
-
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
             return RedirectToAction("Index", "Home");
 
-        var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
+        var trainer = await _context.Trainers
+            .Include(t => t.TrainerServices)
+            .ThenInclude(ts => ts.Service)
+            .Include(t => t.Gym)
+            .FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
 
         if (trainer == null)
             return RedirectToAction("Index", "Home");
 
-        if (!TimeOnly.TryParse(startTime, out var start) || !TimeOnly.TryParse(endTime, out var end))
+        ViewBag.TrainerServices = trainer.TrainerServices ?? new List<TrainerService>();
+        ViewBag.TrainerGym = trainer.Gym;
+        ViewBag.GymId = trainer.GymId;
+        return View();
+    }
+    [HttpPost]
+    [Authorize(Roles = Roles.RoleTrainer)]
+    public async Task<IActionResult> Create(string slotType, int? dayOfWeek, int hour, int? gymId, int[] selectedServices)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        
+        // slotType: "specific" or "everyday"
+        if (slotType != "specific" && slotType != "everyday")
         {
-            ModelState.AddModelError("", "Geçersiz saat formatı.");
+            ModelState.AddModelError("slotType", "Lütfen geçerli bir seçim yapınız.");
+        }
+
+        if (slotType == "specific" && (dayOfWeek == null || dayOfWeek < 0 || dayOfWeek > 6))
+        {
+            ModelState.AddModelError("dayOfWeek", "Lütfen geçerli bir gün seçiniz.");
+        }
+
+        if (hour < 0 || hour > 23)
+        {
+            ModelState.AddModelError("hour", "Lütfen geçerli bir saat seçiniz.");
+        }
+
+        if (gymId == null || gymId <= 0)
+        {
+            ModelState.AddModelError("gymId", "Lütfen spor merkezini seçiniz.");
+        }
+
+        if (selectedServices == null || selectedServices.Length == 0)
+        {
+            ModelState.AddModelError("selectedServices", "Lütfen en az bir hizmet seçiniz.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            var trainerForError = await _context.Trainers
+                .Include(t => t.TrainerServices)
+                .ThenInclude(ts => ts.Service)
+                .Include(t => t.Gym)
+                .FirstOrDefaultAsync(t => t.ApplicationUserId == user!.Id);
+            
+            ViewBag.TrainerServices = trainerForError?.TrainerServices ?? new List<TrainerService>();
+            ViewBag.TrainerGym = trainerForError?.Gym;
+            ViewBag.GymId = trainerForError?.GymId;
             return View();
         }
 
-        if (end <= start)
+        if (user == null)
+            return RedirectToAction("Index", "Home");
+
+        var trainer = await _context.Trainers
+            .Include(t => t.Gym)
+            .FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
+        if (trainer == null)
+            return RedirectToAction("Index", "Home");
+
+        var daysToCreate = slotType == "everyday" ? new[] { 0, 1, 2, 3, 4, 5, 6 } : new[] { dayOfWeek!.Value };
+
+        foreach (var day in daysToCreate)
         {
-            ModelState.AddModelError("", "Bitiş saati başlangıç saatinden sonra olmalıdır.");
-            return View();
+            var slot = new ScheduleSlot
+            {
+                TrainerId = trainer.Id,
+                GymId = gymId!.Value,
+                DayOfWeek = day,
+                Hour = hour,
+                IsWeekly = false
+            };
+
+            _context.ScheduleSlots.Add(slot);
+            await _context.SaveChangesAsync();
+
+            // Add services to the schedule slot
+            foreach (var serviceId in selectedServices!)
+            {
+                var slotService = new ScheduleSlotService
+                {
+                    ScheduleSlotId = slot.Id,
+                    ServiceId = serviceId
+                };
+                _context.ScheduleSlotServices.Add(slotService);
+            }
         }
 
-        var slot = new ScheduleSlot
-        {
-            TrainerId = trainer.Id,
-            DayOfWeek = dayOfWeek,
-            StartTime = start,
-            EndTime = end,
-            Capacity = capacity
-        };
-
-        _context.ScheduleSlots.Add(slot);
         await _context.SaveChangesAsync();
-
         return RedirectToAction("MySchedule");
     }
 
     [Authorize(Roles = Roles.RoleTrainer)]
     public async Task<IActionResult> Edit(int id)
     {
-        var schedule = await _context.ScheduleSlots.FindAsync(id);
+        var schedule = await _context.ScheduleSlots
+            .Include(s => s.ScheduleSlotServices)
+            .Include(s => s.Gym)
+            .FirstOrDefaultAsync(s => s.Id == id);
         if (schedule == null)
             return NotFound();
 
@@ -101,21 +163,49 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
         if (user == null)
             return RedirectToAction("Index", "Home");
 
-        var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
+        var trainer = await _context.Trainers
+            .Include(t => t.TrainerServices)
+            .ThenInclude(ts => ts.Service)
+            .Include(t => t.Gym)
+            .FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
 
         if (trainer?.Id != schedule.TrainerId)
             return Forbid();
 
+        ViewBag.TrainerServices = trainer?.TrainerServices ?? new List<TrainerService>();
+        ViewBag.TrainerGym = trainer?.Gym;
+        ViewBag.GymId = trainer?.GymId;
+        ViewBag.SelectedServiceIds = schedule.ScheduleSlotServices?.Select(s => s.ServiceId).ToList() ?? new List<int>();
         return View(schedule);
     }
 
     [HttpPost]
     [Authorize(Roles = Roles.RoleTrainer)]
-    public async Task<IActionResult> Edit(int id, int dayOfWeek, string startTime, string endTime, int capacity)
+    public async Task<IActionResult> Edit(int id, int dayOfWeek, int hour, int? gymId, bool isWeekly, int[] selectedServices)
     {
-        var schedule = await _context.ScheduleSlots.FindAsync(id);
+        var schedule = await _context.ScheduleSlots
+            .Include(s => s.ScheduleSlotServices)
+            .FirstOrDefaultAsync(s => s.Id == id);
         if (schedule == null)
             return NotFound();
+
+        if (selectedServices == null || selectedServices.Length == 0)
+        {
+            ModelState.AddModelError("", "Lütfen en az bir hizmet seçiniz.");
+            return View(schedule);
+        }
+
+        if (hour < 0 || hour > 23)
+        {
+            ModelState.AddModelError("", "Lütfen geçerli bir saat seçiniz.");
+            return View(schedule);
+        }
+
+        if (gymId == null || gymId <= 0)
+        {
+            ModelState.AddModelError("", "Lütfen spor merkezini seçiniz.");
+            return View(schedule);
+        }
 
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -126,23 +216,27 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
         if (trainer?.Id != schedule.TrainerId)
             return Forbid();
 
-        if (!TimeOnly.TryParse(startTime, out var start) || !TimeOnly.TryParse(endTime, out var end))
-        {
-            ModelState.AddModelError("", "Geçersiz saat formatı.");
-            return View(schedule);
-        }
-
-        if (end <= start)
-        {
-            ModelState.AddModelError("", "Bitiş saati başlangıç saatinden sonra olmalıdır.");
-            return View(schedule);
-        }
-
         schedule.DayOfWeek = dayOfWeek;
-        schedule.StartTime = start;
-        schedule.EndTime = end;
-        schedule.Capacity = capacity;
+        schedule.Hour = hour;
+        schedule.GymId = gymId.Value;
+        schedule.IsWeekly = isWeekly;
         schedule.UpdatedAt = DateTime.Now;
+
+        // Update services
+        if (schedule.ScheduleSlotServices != null && schedule.ScheduleSlotServices.Any())
+        {
+            _context.ScheduleSlotServices.RemoveRange(schedule.ScheduleSlotServices);
+        }
+        
+        foreach (var serviceId in selectedServices)
+        {
+            var slotService = new ScheduleSlotService
+            {
+                ScheduleSlotId = schedule.Id,
+                ServiceId = serviceId
+            };
+            _context.ScheduleSlotServices.Add(slotService);
+        }
 
         _context.ScheduleSlots.Update(schedule);
         await _context.SaveChangesAsync();

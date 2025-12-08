@@ -40,7 +40,9 @@ public class TrainerController(ApplicationDbContext context, UserManager<Applica
     public async Task<IActionResult> TakeAppointment(int id)
     {
         var trainer = await _context.Trainers
-            .Include(t => t.ScheduleSlots)
+            .Include(t => t.ScheduleSlots)!
+            .ThenInclude(s => s.ScheduleSlotServices!)
+            .ThenInclude(sss => sss.Service)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (trainer == null)
@@ -54,7 +56,9 @@ public class TrainerController(ApplicationDbContext context, UserManager<Applica
     public async Task<IActionResult> BookAppointment(int trainerId, int scheduleSlotId, DateTime appointmentDate, string? notes)
     {
         var user = await _userManager.GetUserAsync(User);
-        var trainer = await _context.Trainers.FindAsync(trainerId);
+        var trainer = await _context.Trainers
+            .Include(t => t.ScheduleSlots)
+            .FirstOrDefaultAsync(t => t.Id == trainerId);
         var scheduleSlot = await _context.ScheduleSlots.FindAsync(scheduleSlotId);
 
         if (trainer == null || scheduleSlot == null)
@@ -67,12 +71,30 @@ public class TrainerController(ApplicationDbContext context, UserManager<Applica
             return View("TakeAppointment", trainer);
         }
 
+        // Check if this slot is already booked for this date and time
+        var existingAppointment = await _context.Appointments
+            .FirstOrDefaultAsync(a => 
+                a.ScheduleSlotId == scheduleSlotId && 
+                a.AppointmentDate == appointmentDate);
+
+        if (existingAppointment != null)
+        {
+            ModelState.AddModelError("", "Bu zaman dilimi, bu tarih için zaten dolu. Lütfen başka bir zaman seçiniz.");
+            trainer = await _context.Trainers
+                .Include(t => t.ScheduleSlots)!
+                .ThenInclude(s => s.ScheduleSlotServices!)
+                .ThenInclude(sss => sss.Service)
+                .FirstOrDefaultAsync(t => t.Id == trainerId);
+            return View("TakeAppointment", trainer);
+        }
+
         var appointment = new Appointment
         {
             TrainerId = trainerId,
             UserId = user!.Id,
+            ScheduleSlotId = scheduleSlotId,
             AppointmentDate = appointmentDate,
-            AppointmentTime = scheduleSlot.StartTime.ToTimeSpan(),
+            AppointmentTime = TimeSpan.FromHours(scheduleSlot.Hour),
             Notes = notes ?? string.Empty
         };
 
