@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PowerUp.Data;
 
@@ -11,9 +12,11 @@ using PowerUp.Data;
 namespace PowerUp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251205185342_AddScheduleSlotToAppointment")]
+    partial class AddScheduleSlotToAppointment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -304,14 +307,14 @@ namespace PowerUp.Migrations
                     b.Property<int>("DayOfWeek")
                         .HasColumnType("int");
 
-                    b.Property<int>("GymId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Hour")
-                        .HasColumnType("int");
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
 
                     b.Property<bool>("IsWeekly")
                         .HasColumnType("bit");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
 
                     b.Property<int>("TrainerId")
                         .HasColumnType("int");
@@ -320,8 +323,6 @@ namespace PowerUp.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GymId");
 
                     b.HasIndex("TrainerId");
 
@@ -526,19 +527,11 @@ namespace PowerUp.Migrations
 
             modelBuilder.Entity("PowerUp.Models.ScheduleSlot", b =>
                 {
-                    b.HasOne("PowerUp.Models.Gym", "Gym")
-                        .WithMany()
-                        .HasForeignKey("GymId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("PowerUp.Models.Trainer", "Trainer")
                         .WithMany("ScheduleSlots")
                         .HasForeignKey("TrainerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Gym");
 
                     b.Navigation("Trainer");
                 });
