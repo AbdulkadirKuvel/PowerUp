@@ -12,19 +12,23 @@ public class ScheduleSlot
     public int TrainerId { get; set; }
     public Trainer? Trainer { get; set; }
 
+    [Required(ErrorMessage = "Lütfen Spor Merkezini seçiniz.")]
+    [ForeignKey("Gym")]
+    public int GymId { get; set; }
+    public Gym? Gym { get; set; }
+
     [Required(ErrorMessage = "Lütfen Haftanın Günü seçiniz.")]
     [Range(0, 6, ErrorMessage = "Gün 0-6 arasında olmalıdır.")]
     public int DayOfWeek { get; set; } // 0 = Monday, 1 = Tuesday, ..., 6 = Sunday
 
-    [Required(ErrorMessage = "Lütfen Başlangıç Saati giriniz.")]
-    public TimeOnly StartTime { get; set; }
+    [Required(ErrorMessage = "Lütfen Saat seçiniz.")]
+    [Range(0, 23, ErrorMessage = "Saat 0-23 arasında olmalıdır.")]
+    public int Hour { get; set; } // 0-23 representing the start hour of the session
 
-    [Required(ErrorMessage = "Lütfen Bitiş Saati giriniz.")]
-    public TimeOnly EndTime { get; set; }
+    [Required(ErrorMessage = "Lütfen tekrar seçimi yapınız.")]
+    public bool IsWeekly { get; set; } = false; // false = daily, true = weekly
 
-    [Required(ErrorMessage = "Lütfen Kapasite giriniz.")]
-    [Range(1, 100, ErrorMessage = "Kapasite 1-100 arasında olmalıdır.")]
-    public int Capacity { get; set; }
+    public ICollection<ScheduleSlotService>? ScheduleSlotServices { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;

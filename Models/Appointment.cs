@@ -15,6 +15,10 @@ public class Appointment
     public string UserId { get; set; } = string.Empty;
     public ApplicationUser? User { get; set; }
 
+    [ForeignKey("ScheduleSlot")]
+    public int ScheduleSlotId { get; set; }
+    public ScheduleSlot? ScheduleSlot { get; set; }
+
     [Required]
     public DateTime AppointmentDate { get; set; }
 
