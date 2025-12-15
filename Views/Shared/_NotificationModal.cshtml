@@ -1,0 +1,106 @@
+<!-- Notification Badge -->
+<button class="btn btn-link position-relative" id="notificationBtn" style="color: #333; text-decoration: none; font-size: 1.3rem;">
+    <i class="fas fa-bell"></i>
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge" style="display: none;">
+        <span id="notificationCount">0</span>
+    </span>
+</button>
+
+<script>
+    const notificationBtn = document.getElementById('notificationBtn');
+
+    // Load notifications when button is clicked
+    notificationBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        await loadAndDisplayNotifications();
+    });
+
+    async function loadAndDisplayNotifications() {
+        try {
+            const response = await fetch('/api/notification/all');
+            const notifications = await response.json();
+            
+            if (notifications.length === 0) {
+                window.DialogBox.show({
+                    type: 'list',
+                    title: 'Bildirimler',
+                    items: [{ subject: 'Bildirim yok', description: 'Şu an hiçbir bildiriminiz bulunmamaktadır.' }]
+                });
+            } else {
+                let items = notifications.map(notif => ({
+                    subject: notif.subject,
+                    description: notif.description + ' (' + formatTime(notif.createdAt) + ')',
+                    notificationId: notif.id,
+                    action: async function() {
+                        try {
+                            // Mark as read
+                            await fetch(`/api/notification/${this.notificationId}/mark-as-read`, { method: 'POST' });
+                            // Delete the notification
+                            await fetch(`/api/notification/${this.notificationId}`, { method: 'DELETE' });
+                            // Update count
+                            await updateNotificationCount();
+                            // Reload notifications
+                            await loadAndDisplayNotifications();
+                        } catch (error) {
+                            console.error('Error dismissing notification:', error);
+                        }
+                    }
+                }));
+                
+                window.DialogBox.show({
+                    type: 'list',
+                    title: 'Bildirimler',
+                    items: items
+                });
+            }
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            window.DialogBox.show({
+                type: 'error',
+                title: 'Hata',
+                message: 'Bildirimler yüklenirken bir hata oluştu.'
+            });
+        }
+    }
+
+    async function updateNotificationCount() {
+        try {
+            const response = await fetch('/api/notification/unread-count');
+            const data = await response.json();
+            const badge = document.getElementById('notificationBadge');
+            const count = document.getElementById('notificationCount');
+            
+            if (data.count > 0) {
+                badge.style.display = 'inline-block';
+                count.textContent = data.count;
+            } else {
+                badge.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error updating notification count:', error);
+        }
+    }
+
+    function formatTime(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 1) return 'az önce';
+        if (minutes < 60) return `${minutes} dakika önce`;
+        if (hours < 24) return `${hours} saat önce`;
+        if (days < 7) return `${days} gün önce`;
+        
+        return date.toLocaleDateString('tr-TR');
+    }
+
+    // Load notification count on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateNotificationCount();
+        // Refresh count every 30 seconds
+        setInterval(updateNotificationCount, 30000);
+    });
+</script>
