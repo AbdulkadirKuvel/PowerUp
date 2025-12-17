@@ -46,147 +46,153 @@
     }
     else
     {
-        <form method="post" asp-action="BookAppointment">
-            <input type="hidden" name="trainerId" value="@Model.Id">
-            
-            <div class="card mx-3 mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Uygun Saatleri Seç</h5>
-                </div>
-                <div class="card-body p-0">
-                    <style>
-                        .appointment-grid {
-                            display: grid;
-                            grid-template-columns: 80px repeat(7, 1fr);
-                            gap: 1px;
-                            background-color: #ddd;
-                            padding: 1px;
-                            border-radius: 4px;
-                            overflow-x: auto;
-                        }
-                        
-                        .appointment-cell {
-                            background-color: white;
-                            border: 1px solid #ddd;
-                            padding: 6px;
-                            min-height: 50px;
-                            position: relative;
-                            font-size: 12px;
-                            word-wrap: break-word;
-                            overflow: hidden;
-                        }
-                        
-                        .appointment-header-day {
-                            background-color: #0d6efd;
-                            color: white;
-                            font-weight: bold;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            padding: 12px 6px;
-                            min-height: 50px;
-                        }
-                        
-                        .appointment-header-time {
-                            background-color: #6c757d;
-                            color: white;
-                            font-weight: bold;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            padding: 6px;
-                            font-size: 11px;
-                            min-height: 50px;
-                        }
-                        
-                        .slot-radio-block {
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            color: white;
-                            padding: 6px;
-                            border-radius: 3px;
-                            margin-bottom: 2px;
-                            border-left: 4px solid #764ba2;
-                            cursor: pointer;
-                            transition: all 0.2s;
-                            font-size: 11px;
-                            line-height: 1.2;
-                            display: flex;
-                            align-items: flex-start;
-                            gap: 4px;
-                        }
-                        
-                        .slot-radio-block:hover {
-                            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-                            transform: translateY(-2px);
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                        }
-                        
-                        .slot-radio-block input[type="radio"] {
-                            cursor: pointer;
-                            margin-top: 2px;
-                            flex-shrink: 0;
-                        }
-                        
-                        .slot-time {
-                            font-weight: bold;
-                            font-size: 11px;
-                        }
-                        
-                        .appointment-container {
-                            overflow-x: auto;
-                            padding: 12px;
-                        }
-                    </style>
+        <!-- Weekly Schedule Grid -->
+        <div class="card mx-3 mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Haftalık Takvim</h5>
+                <small class="text-muted">
+                    <span class="badge bg-success" style="margin-right: 10px;">Boş Slot</span>
+                    <span class="badge bg-danger">Kabul Edilen Randevu</span>
+                </small>
+            </div>
+            <div class="card-body p-0">
+                <style>
+                    .appointment-grid {
+                        display: grid;
+                        grid-template-columns: 80px repeat(7, 1fr);
+                        gap: 1px;
+                        background-color: #ddd;
+                        padding: 1px;
+                        border-radius: 4px;
+                        overflow-x: auto;
+                    }
                     
-                    <div class="appointment-container">
-                        <div class="appointment-grid">
-                            <!-- Header row with day names -->
-                            <div class="appointment-cell appointment-header-time">Saat</div>
+                    .appointment-cell {
+                        background-color: white;
+                        border: 1px solid #ddd;
+                        padding: 6px;
+                        min-height: 50px;
+                        position: relative;
+                        font-size: 12px;
+                        word-wrap: break-word;
+                        overflow: hidden;
+                    }
+                    
+                    .appointment-header-day {
+                        background-color: #0d6efd;
+                        color: white;
+                        font-weight: bold;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 12px 6px;
+                        min-height: 50px;
+                    }
+                    
+                    .appointment-header-time {
+                        background-color: #6c757d;
+                        color: white;
+                        font-weight: bold;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 6px;
+                        font-size: 11px;
+                        min-height: 50px;
+                    }
+                    
+                    .slot-box {
+                        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                        color: white;
+                        padding: 6px;
+                        border-radius: 3px;
+                        margin-bottom: 2px;
+                        border-left: 4px solid #20c997;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        font-size: 11px;
+                        line-height: 1.2;
+                    }
+                    
+                    .slot-box:hover {
+                        background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                    }
+                    
+                    .slot-box.booked {
+                        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+                        border-left-color: #c82333;
+                        cursor: not-allowed;
+                    }
+                    
+                    .slot-box.booked:hover {
+                        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+                        transform: none;
+                        opacity: 0.8;
+                    }
+                    
+                    .appointment-container {
+                        overflow-x: auto;
+                        padding: 12px;
+                    }
+                </style>
+                
+                <div class="appointment-container">
+                    <div class="appointment-grid">
+                        <!-- Header row with day names -->
+                        <div class="appointment-cell appointment-header-time">Saat</div>
+                        @for (int day = 0; day < 7; day++)
+                        {
+                            <div class="appointment-cell appointment-header-day">@days[day]</div>
+                        }
+                        
+                        <!-- Time rows -->
+                        @for (int hour = startHour; hour < endHour; hour++)
+                        {
+                            <div class="appointment-cell appointment-header-time">@hour:00</div>
+                            
                             @for (int day = 0; day < 7; day++)
                             {
-                                <div class="appointment-cell appointment-header-day">@days[day]</div>
+                                <div class="appointment-cell">
+                                    @{
+                                        var slotsForCell = slotsByDay[day]
+                                            .Where(s => s.Hour == hour)
+                                            .ToList();
+                                    }
+                                    
+                                    @foreach (var slot in slotsForCell)
+                                    {
+                                        <div class="slot-box" data-slot-id="@slot.Id" data-day="@slot.DayOfWeek" data-hour="@slot.Hour" title="@slot.Hour:00 - @(slot.Hour + 1):00 - @slot.Gym?.Name">
+                                            <div><strong>@slot.Gym?.Name</strong></div>
+                                            @if (slot.ScheduleSlotServices?.Count > 0)
+                                            {
+                                                <div style="font-size: 10px;">@string.Join(", ", slot.ScheduleSlotServices.Take(1).Select(ss => ss.Service?.Name ?? ""))</div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
                             }
-                            
-                            <!-- Time rows -->
-                            @for (int hour = startHour; hour < endHour; hour++)
-                            {
-                                <div class="appointment-cell appointment-header-time">@hour:00</div>
-                                
-                                @for (int day = 0; day < 7; day++)
-                                {
-                                    <div class="appointment-cell">
-                                        @{
-                                            var slotsForCell = slotsByDay[day]
-                                                .Where(s => s.Hour == hour)
-                                                .ToList();
-                                        }
-                                        
-                                        @foreach (var slot in slotsForCell)
-                                        {
-                                            <label class="slot-radio-block" title="@slot.Hour:00 - @(slot.Hour + 1):00 - @slot.Gym?.Name">
-                                                <input type="radio" name="scheduleSlotId" value="@slot.Id" required>
-                                                <span>
-                                                    <div class="slot-time">@slot.Gym?.Name</div>
-                                                    @if (slot.ScheduleSlotServices?.Count > 0)
-                                                    {
-                                                        <div style="font-size: 10px;">@string.Join(", ", slot.ScheduleSlotServices.Take(1).Select(ss => ss.Service?.Name ?? ""))</div>
-                                                    }
-                                                </span>
-                                            </label>
-                                        }
-                                    </div>
-                                }
-                            }
-                        </div>
+                        }
                     </div>
                 </div>
             </div>
+        </div>
 
+        <form id="appointmentForm" method="post" asp-action="BookAppointment" asp-controller="Trainer">
+            <input type="hidden" name="trainerId" value="@Model.Id">
+            <input type="hidden" id="selectedSlotId" name="scheduleSlotId" value="">
+            
             <div class="card mx-3 mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Randevu Ayrıntıları</h5>
+                </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="appointmentDate" class="form-label">Tarih Seç</label>
-                        <input type="date" class="form-control" id="appointmentDate" name="appointmentDate" required>
+                        <label class="form-label">Seçilen Tarih</label>
+                        <div class="form-control bg-light">
+                            <span id="selectedDateDisplay" class="text-muted">-- Önce takvimden bir slot seçiniz --</span>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -195,10 +201,194 @@
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-success">Randevu Al</button>
+                        <button type="submit" class="btn btn-success" id="submitBtn" disabled>Randevu Al</button>
                     </div>
                 </div>
             </div>
         </form>
+
+        <script>
+            const appointmentDate = document.getElementById('appointmentDate');
+            const submitBtn = document.getElementById('submitBtn');
+            const form = document.getElementById('appointmentForm');
+            const trainerId = document.querySelector('input[name="trainerId"]').value;
+            const selectedSlotInput = document.getElementById('selectedSlotId');
+            const slotBoxes = document.querySelectorAll('.slot-box');
+            let currentUserTrainerId = null;
+
+            // Load booked appointments on page load
+            async function loadBookedAppointments() {
+                try {
+                    const response = await fetch(`/api/trainer/@Model.Id/booked-appointments`);
+                    if (response.ok) {
+                        const bookedAppointments = await response.json();
+                        
+                        // Mark booked slots in red
+                        slotBoxes.forEach(box => {
+                            const slotId = parseInt(box.dataset.slotId);
+                            const isBooked = bookedAppointments.some(app => app.scheduleSlotId === slotId);
+                            if (isBooked) {
+                                box.classList.add('booked');
+                                box.style.pointerEvents = 'none';
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading booked appointments:', error);
+                }
+            }
+
+            // Get current user's trainer ID to prevent self-booking
+            async function loadCurrentUserTrainerId() {
+                try {
+                    const response = await fetch('/api/trainer/current/trainer-id');
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentUserTrainerId = data.trainerId;
+                        
+                        // Hide slots if user is a trainer trying to book their own slots
+                        if (currentUserTrainerId === @Model.Id) {
+                            slotBoxes.forEach(box => {
+                                box.style.display = 'none';
+                            });
+                            
+                            // Show message
+                            const card = document.querySelector('.card');
+                            const message = document.createElement('div');
+                            message.className = 'alert alert-info mx-3';
+                            message.textContent = 'Eğitmen olarak kendi zamanlarınıza randevu alamazsınız.';
+                            card.parentNode.insertBefore(message, card);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading current user trainer ID:', error);
+                }
+            }
+
+            // When slot is clicked, show the selected date
+            slotBoxes.forEach(box => {
+                box.addEventListener('click', function() {
+                    if (this.classList.contains('booked')) return;
+
+                    submitBtn.disabled = true;
+                    selectedSlotInput.value = '';
+
+                    const dayOfWeek = parseInt(this.dataset.day);
+                    const hour = parseInt(this.dataset.hour);
+                    const slotId = parseInt(this.dataset.slotId);
+
+                    selectedSlotInput.value = slotId;
+
+                    // Get next 7 days and find matching date
+                    const today = new Date();
+                    let selectedDate = null;
+                    
+                    for (let i = 0; i < 7; i++) {
+                        const date = new Date(today);
+                        date.setDate(date.getDate() + i);
+                        
+                        // Convert JavaScript getDay() (0=Sunday) to C# DayOfWeek (0=Monday)
+                        let jsDayOfWeek = date.getDay();
+                        let csharpDayOfWeek = jsDayOfWeek === 0 ? 6 : jsDayOfWeek - 1;
+                        
+                        if (csharpDayOfWeek === dayOfWeek) {
+                            selectedDate = date;
+                            break; // Just take the first matching date
+                        }
+                    }
+
+                    // Display the selected date
+                    if (selectedDate) {
+                        const dayName = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'][selectedDate.getDay()];
+                        const displayDate = new Date(selectedDate).toLocaleDateString('tr-TR', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        
+                        // Store the date in the hidden input as well
+                        const dateStr = selectedDate.toISOString().split('T')[0];
+                        const appointmentDateInput = document.createElement('input');
+                        appointmentDateInput.type = 'hidden';
+                        appointmentDateInput.name = 'appointmentDate';
+                        appointmentDateInput.value = dateStr;
+                        
+                        // Remove old appointment date input if exists
+                        const oldInput = form.querySelector('input[name="appointmentDate"]');
+                        if (oldInput) oldInput.remove();
+                        form.appendChild(appointmentDateInput);
+                        
+                        document.getElementById('selectedDateDisplay').textContent = `${displayDate} (${dayName}) - ${hour}:00`;
+                        submitBtn.disabled = false;
+                    }
+
+                    // Highlight selected slot
+                    document.querySelectorAll('.slot-box:not(.booked)').forEach(b => b.style.opacity = '0.5');
+                    this.style.opacity = '1';
+                });
+            });
+
+            // Handle form submission with AJAX
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                if (!selectedSlotInput.value) {
+                    window.DialogBox.show({
+                        type: 'error',
+                        title: 'Hata',
+                        message: 'Lütfen takvimden bir zaman dilimi seçiniz!'
+                    });
+                    return;
+                }
+
+                const formData = new FormData(form);
+                formData.set('trainerId', trainerId);
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Show success dialog
+                        window.DialogBox.show({
+                            type: 'informant',
+                            title: 'Başarılı',
+                            message: 'Randevu başarıyla oluşturuldu! Eğitmen tarafından onay beklenektedir.',
+                            buttons: [
+                                {
+                                    text: 'Tamam',
+                                    action: () => {
+                                        window.location.href = '@Url.Action("Detail", "Trainer", new { id = "TRAINER_ID" })'.replace('TRAINER_ID', trainerId);
+                                    },
+                                    isPrimary: true
+                                }
+                            ]
+                        });
+                    } else {
+                        const error = await response.json();
+                        window.DialogBox.show({
+                            type: 'error',
+                            title: 'Hata',
+                            message: error.message || 'Randevu oluşturulamadı!'
+                        });
+                    }
+                } catch (error) {
+                    window.DialogBox.show({
+                        type: 'error',
+                        title: 'Hata',
+                        message: 'Bir hata oluştu: ' + error.message
+                    });
+                }
+            });
+
+            // Load booked appointments on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                loadCurrentUserTrainerId();
+                loadBookedAppointments();
+            });
+        </script>
     }
-</div>

@@ -1,0 +1,206 @@
+@model List<Appointment>
+
+@{
+    ViewData["Title"] = "Randevular";
+    var awaitingAppointments = Model.Where(a => a.Status == 0).ToList();
+    var acceptedAppointments = Model.Where(a => a.Status == 1).ToList();
+    var rejectedAppointments = Model.Where(a => a.Status == 2).ToList();
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-0">
+                <i class="fas fa-calendar-check"></i> Randevularım
+            </h2>
+            <small class="text-muted">Müşteri taleplerini yönetin ve kabul/reddet edin</small>
+        </div>
+    </div>
+
+    <!-- Awaiting Appointments -->
+    <div class="card mb-4" style="border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <div class="card-header" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 15px 15px 0 0; border: none;">
+            <h5 class="mb-0 text-white">
+                <i class="fas fa-clock"></i> Beklemede (@awaitingAppointments.Count)
+            </h5>
+        </div>
+        <div class="card-body p-3">
+            @if (awaitingAppointments.Count == 0)
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox text-muted" style="font-size: 2rem;"></i>
+                    <p class="text-muted mt-3">Beklemede randevu yok</p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var appointment in awaitingAppointments)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100" style="border-radius: 12px; border: 2px solid #ffc107; transition: all 0.3s ease;">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-user-circle"></i> @appointment.User?.UserName
+                                    </h6>
+                                    <p class="mb-2">
+                                        <strong>Tarih:</strong> @appointment.AppointmentDate.ToString("dd/MM/yyyy")
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Saat:</strong> @appointment.ScheduleSlot?.Hour:00 - @((appointment.ScheduleSlot?.Hour ?? 0) + 1):00
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Hizmetler:</strong>
+                                        @if (appointment.ScheduleSlot?.ScheduleSlotServices?.Any() == true)
+                                        {
+                                            <br />
+                                            @foreach (var service in appointment.ScheduleSlot.ScheduleSlotServices)
+                                            {
+                                                <span class="badge bg-info me-1">@service.Service?.Name</span>
+                                            }
+                                        }
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(appointment.Notes))
+                                    {
+                                        <p class="mb-3">
+                                            <strong>Notlar:</strong><br />
+                                            <small class="text-muted">@appointment.Notes</small>
+                                        </p>
+                                    }
+                                    <div class="d-grid gap-2">
+                                        <form method="post" asp-action="AcceptAppointment" asp-route-id="@appointment.Id" style="display: inline;">
+                                            <button type="submit" class="btn btn-success btn-sm w-100 mb-2">
+                                                <i class="fas fa-check"></i> Kabul Et
+                                            </button>
+                                        </form>
+                                        <form method="post" asp-action="RejectAppointment" asp-route-id="@appointment.Id" style="display: inline;">
+                                            <button type="submit" class="btn btn-danger btn-sm w-100">
+                                                <i class="fas fa-times"></i> Reddet
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Accepted Appointments -->
+    <div class="card mb-4" style="border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <div class="card-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 15px 15px 0 0; border: none;">
+            <h5 class="mb-0 text-white">
+                <i class="fas fa-check-circle"></i> Kabul Edilen (@acceptedAppointments.Count)
+            </h5>
+        </div>
+        <div class="card-body p-3">
+            @if (acceptedAppointments.Count == 0)
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox text-muted" style="font-size: 2rem;"></i>
+                    <p class="text-muted mt-3">Kabul edilen randevu yok</p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var appointment in acceptedAppointments)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100" style="border-radius: 12px; border: 2px solid #28a745; transition: all 0.3s ease;">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-user-circle"></i> @appointment.User?.UserName
+                                    </h6>
+                                    <p class="mb-2">
+                                        <strong>Tarih:</strong> @appointment.AppointmentDate.ToString("dd/MM/yyyy")
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Saat:</strong> @appointment.ScheduleSlot?.Hour:00 - @((appointment.ScheduleSlot?.Hour ?? 0) + 1):00
+                                    </p>
+                                    <p class="mb-3">
+                                        <strong>Hizmetler:</strong>
+                                        @if (appointment.ScheduleSlot?.ScheduleSlotServices?.Any() == true)
+                                        {
+                                            <br />
+                                            @foreach (var service in appointment.ScheduleSlot.ScheduleSlotServices)
+                                            {
+                                                <span class="badge bg-info me-1">@service.Service?.Name</span>
+                                            }
+                                        }
+                                    </p>
+                                    <form method="post" asp-action="CancelAppointment" asp-route-id="@appointment.Id" style="display: inline;">
+                                        <button type="submit" class="btn btn-warning btn-sm w-100">
+                                            <i class="fas fa-ban"></i> İptal Et
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Rejected Appointments -->
+    <div class="card" style="border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <div class="card-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); border-radius: 15px 15px 0 0; border: none;">
+            <h5 class="mb-0 text-white">
+                <i class="fas fa-times-circle"></i> Reddedilen (@rejectedAppointments.Count)
+            </h5>
+        </div>
+        <div class="card-body p-3">
+            @if (rejectedAppointments.Count == 0)
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox text-muted" style="font-size: 2rem;"></i>
+                    <p class="text-muted mt-3">Reddedilen randevu yok</p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var appointment in rejectedAppointments)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100" style="border-radius: 12px; border: 2px solid #dc3545; transition: all 0.3s ease; opacity: 0.8;">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-user-circle"></i> @appointment.User?.UserName
+                                    </h6>
+                                    <p class="mb-2">
+                                        <strong>Tarih:</strong> @appointment.AppointmentDate.ToString("dd/MM/yyyy")
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Saat:</strong> @appointment.ScheduleSlot?.Hour:00 - @((appointment.ScheduleSlot?.Hour ?? 0) + 1):00
+                                    </p>
+                                    <p>
+                                        <strong>Hizmetler:</strong>
+                                        @if (appointment.ScheduleSlot?.ScheduleSlotServices?.Any() == true)
+                                        {
+                                            <br />
+                                            @foreach (var service in appointment.ScheduleSlot.ScheduleSlotServices)
+                                            {
+                                                <span class="badge bg-info me-1">@service.Service?.Name</span>
+                                            }
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+</style>

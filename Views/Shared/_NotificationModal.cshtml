@@ -20,6 +20,11 @@
             const response = await fetch('/api/notification/all');
             const notifications = await response.json();
             
+            // Use a bell icon for notifications (allow overriding DialogBox icons)
+            if (window.DialogBox && window.DialogBox.setIcons) {
+                window.DialogBox.setIcons({ list: { html: '<i class="fas fa-bell"></i>', color: '#ffd166' } });
+            }
+
             if (notifications.length === 0) {
                 window.DialogBox.show({
                     type: 'list',
