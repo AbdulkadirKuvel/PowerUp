@@ -22,6 +22,7 @@ body {
     background: linear-gradient(135deg, #2b0000 0%, #8b0000 100%);
     color: white;
     padding: 0;
+    overflow-x: hidden; /* prevent horizontal scrollbar when collapsed */
     overflow-y: auto;
     transition: width var(--transition-speed);
     z-index: 1000;
@@ -30,6 +31,12 @@ body {
 
 .sidebar.collapsed {
     width: var(--sidebar-collapsed-width);
+    overflow-x: hidden; /* prevent horizontal scrollbar when collapsed */
+}
+
+/* When collapsed, prevent hover padding from causing horizontal overflow */
+.sidebar.collapsed .sidebar-nav-link:hover {
+    padding-left: 12px;
 }
 
 .sidebar-header {
@@ -89,6 +96,7 @@ body {
     transition: all var(--transition-speed);
     white-space: nowrap;
     overflow: hidden;
+    box-sizing: border-box; /* ensure padding doesn't cause overflow */
 }
 
 .sidebar-nav-link:hover {

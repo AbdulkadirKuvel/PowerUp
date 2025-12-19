@@ -290,22 +290,132 @@ class DialogBox {
                 content.appendChild(description);
                 listItem.appendChild(content);
 
-                if (item.action) {
-                    const actionBtn = document.createElement('button');
-                    actionBtn.className = 'dialog-button dialog-button-secondary';
-                    actionBtn.textContent = '✕';
-                    actionBtn.style.padding = '4px 8px';
-                    actionBtn.style.minWidth = 'auto';
-                    actionBtn.addEventListener('click', () => {
-                        item.action();
-                    });
-                    listItem.appendChild(actionBtn);
+                if (item.action || item.actionLabel) {
+                    // If there's an action label (primary action), render it first
+                    if (item.actionLabel) {
+                        const actionPrimary = document.createElement('button');
+                        actionPrimary.className = 'dialog-button dialog-button-primary';
+                        actionPrimary.textContent = item.actionLabel;
+                        actionPrimary.style.padding = '6px 10px';
+                        actionPrimary.style.minWidth = 'auto';
+                        actionPrimary.addEventListener('click', () => {
+                            if (item.performAction) item.performAction();
+                        });
+                        listItem.appendChild(actionPrimary);
+                    }
+
+                    // Render the default dismiss/delete action as a small secondary button
+                    if (item.action) {
+                        const actionBtn = document.createElement('button');
+                        actionBtn.className = 'dialog-button dialog-button-secondary';
+                        actionBtn.textContent = '✕';
+                        actionBtn.style.padding = '4px 8px';
+                        actionBtn.style.minWidth = 'auto';
+                        actionBtn.style.marginLeft = '8px';
+                        actionBtn.addEventListener('click', () => {
+                            item.action();
+                        });
+                        listItem.appendChild(actionBtn);
+                    }
                 }
 
                 listContainer.appendChild(listItem);
             });
 
             body.appendChild(listContainer);
+        } else if (type === 'rating') {
+            // rating dialog: two 1-5 star inputs (trainer and gym)
+            const ratingArea = document.createElement('div');
+            ratingArea.style.display = 'flex';
+            ratingArea.style.flexDirection = 'column';
+            ratingArea.style.gap = '12px';
+
+            function createStarRow(labelText) {
+                const row = document.createElement('div');
+                const lbl = document.createElement('div');
+                lbl.textContent = labelText;
+                lbl.style.fontWeight = '600';
+                lbl.style.marginBottom = '6px';
+
+                const stars = document.createElement('div');
+                stars.style.display = 'flex';
+                stars.style.gap = '6px';
+
+                const starButtons = [];
+                for (let i = 1; i <= 5; i++) {
+                    const s = document.createElement('button');
+                    s.className = 'dialog-star';
+                    s.style.border = 'none';
+                    s.style.background = 'none';
+                    s.style.fontSize = '24px';
+                    s.style.cursor = 'pointer';
+                    s.textContent = '☆';
+                    s.dataset.value = i;
+                    starButtons.push(s);
+                    stars.appendChild(s);
+                }
+
+                row.appendChild(lbl);
+                row.appendChild(stars);
+                return { row, starButtons };
+            }
+
+            const trainerRow = createStarRow('Eğitmeni Puanla');
+            const gymRow = createStarRow('Salonu Puanla');
+
+            ratingArea.appendChild(trainerRow.row);
+            ratingArea.appendChild(gymRow.row);
+
+            body.appendChild(ratingArea);
+
+            // Track selected values
+            let trainerRating = 5;
+            let gymRating = 5;
+
+            function updateStars(buttons, value) {
+                buttons.forEach((btn, idx) => {
+                    btn.textContent = (idx < value) ? '★' : '☆';
+                    btn.style.color = (idx < value) ? '#ffd166' : '#bbb';
+                });
+            }
+
+            // Initialize
+            updateStars(trainerRow.starButtons, trainerRating);
+            updateStars(gymRow.starButtons, gymRating);
+
+            trainerRow.starButtons.forEach(btn => btn.addEventListener('click', () => {
+                trainerRating = parseInt(btn.dataset.value);
+                updateStars(trainerRow.starButtons, trainerRating);
+            }));
+
+            gymRow.starButtons.forEach(btn => btn.addEventListener('click', () => {
+                gymRating = parseInt(btn.dataset.value);
+                updateStars(gymRow.starButtons, gymRating);
+            }));
+
+            // Create a custom footer for rating dialog with Submit/Cancel
+            const ratingFooter = document.createElement('div');
+            ratingFooter.className = 'dialog-footer';
+
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'dialog-button dialog-button-primary';
+            submitBtn.textContent = 'Gönder';
+            submitBtn.addEventListener('click', () => {
+                if (typeof config.onSubmit === 'function') {
+                    config.onSubmit({ trainer: trainerRating, gym: gymRating });
+                }
+                this.close();
+            });
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'dialog-button dialog-button-secondary';
+            cancelBtn.textContent = 'İptal';
+            cancelBtn.addEventListener('click', () => this.close());
+
+            ratingFooter.appendChild(cancelBtn);
+            ratingFooter.appendChild(submitBtn);
+
+            this.modal.appendChild(ratingFooter);
         } else {
             body.textContent = message;
         }
@@ -337,40 +447,42 @@ class DialogBox {
             checkboxEl = cb;
         }
 
-        // Footer
-        const footer = document.createElement('div');
-        footer.className = 'dialog-footer';
+        // Footer (except for custom 'rating' type which has its own footer)
+        if (type !== 'rating') {
+            const footer = document.createElement('div');
+            footer.className = 'dialog-footer';
 
-        const defaultButtons = {
-            informant: [{ text: 'Tamam', action: () => this.close(), isPrimary: true }],
-            warning: [
-                { text: 'İptal', action: () => this.close(), isPrimary: false },
-                { text: 'Evet', action: () => this.close(), isPrimary: true }
-            ],
-            error: [{ text: 'Tamam', action: () => this.close(), isPrimary: true }],
-            list: [{ text: 'Kapat', action: () => this.close(), isPrimary: true }]
-        };
+            const defaultButtons = {
+                informant: [{ text: 'Tamam', action: () => this.close(), isPrimary: true }],
+                warning: [
+                    { text: 'İptal', action: () => this.close(), isPrimary: false },
+                    { text: 'Evet', action: () => this.close(), isPrimary: true }
+                ],
+                error: [{ text: 'Tamam', action: () => this.close(), isPrimary: true }],
+                list: [{ text: 'Kapat', action: () => this.close(), isPrimary: true }]
+            };
 
-        const buttonsToRender = buttons.length > 0 ? buttons : (defaultButtons[type] || []);
+            const buttonsToRender = buttons.length > 0 ? buttons : (defaultButtons[type] || []);
 
-        buttonsToRender.forEach(btn => {
-            const button = document.createElement('button');
-            button.className = `dialog-button ${btn.isPrimary ? 'dialog-button-primary' : 'dialog-button-secondary'}`;
-            button.textContent = btn.text;
-            button.addEventListener('click', () => {
-                if (btn.action) btn.action();
-            });
-            // If checkbox is required, disable primary buttons until checked
-            if (checkboxEl && btn.isPrimary) {
-                button.disabled = !checkboxEl.checked;
-                checkboxEl.addEventListener('change', () => {
-                    button.disabled = !checkboxEl.checked;
+            buttonsToRender.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = `dialog-button ${btn.isPrimary ? 'dialog-button-primary' : 'dialog-button-secondary'}`;
+                button.textContent = btn.text;
+                button.addEventListener('click', () => {
+                    if (btn.action) btn.action();
                 });
-            }
-            footer.appendChild(button);
-        });
+                // If checkbox is required, disable primary buttons until checked
+                if (checkboxEl && btn.isPrimary) {
+                    button.disabled = !checkboxEl.checked;
+                    checkboxEl.addEventListener('change', () => {
+                        button.disabled = !checkboxEl.checked;
+                    });
+                }
+                footer.appendChild(button);
+            });
 
-        this.modal.appendChild(footer);
+            this.modal.appendChild(footer);
+        }
 
         // Show
         this.backdrop.style.display = 'block';
