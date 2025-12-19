@@ -30,7 +30,7 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
 
         var slots = await _context.ScheduleSlots
             .Where(s => s.TrainerId == trainer.Id)
-            .Include(s => s.ScheduleSlotServices)
+            .Include(s => s.ScheduleSlotServices!)
             .ThenInclude(ss => ss.Service)
             .Include(s => s.Gym)
             .OrderBy(s => s.DayOfWeek)
@@ -261,6 +261,12 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
         if (trainer?.Id != schedule.TrainerId)
             return Forbid();
 
+        // Check for accepted appointments
+        var hasAccepted = await _context.Appointments.AnyAsync(a => a.ScheduleSlotId == id && a.Status == 1);
+        var awaitingCount = await _context.Appointments.CountAsync(a => a.ScheduleSlotId == id && a.Status == 0);
+        ViewBag.HasAcceptedAppointments = hasAccepted;
+        ViewBag.AwaitingCount = awaitingCount;
+
         return View(schedule);
     }
 
@@ -281,6 +287,33 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
 
         if (trainer?.Id != schedule.TrainerId)
             return Forbid();
+
+        // Check for accepted appointments - if any accepted appointments exist, block deletion and route to appointments
+        var acceptedExists = await _context.Appointments.AnyAsync(a => a.ScheduleSlotId == id && a.Status == 1);
+        if (acceptedExists)
+        {
+            TempData["Error"] = "Bu zaman diliminde kabul edilmiş randevular bulunmaktadır. Lütfen randevular sayfasına giderek öncelikle bu randevuları yönetin.";
+            return RedirectToAction("Appointments", "Trainer");
+        }
+
+        // For awaiting appointments, mark them as rejected and notify users
+        var awaiting = await _context.Appointments.Where(a => a.ScheduleSlotId == id && a.Status == 0).ToListAsync();
+        foreach (var app in awaiting)
+        {
+            app.Status = 2; // rejected
+            app.UpdatedAt = DateTime.Now;
+
+            // Create notification for user
+            var notif = new Notification
+            {
+                UserId = app.UserId,
+                Subject = "Randevunuz iptal edildi",
+                Description = $"Üzgünüz, {schedule.DayOfWeek} {schedule.Hour}:00 saatindeki randevunuz iptal edildi.",
+                IsRead = false,
+                CreatedAt = DateTime.Now
+            };
+            _context.Notifications.Add(notif);
+        }
 
         _context.ScheduleSlots.Remove(schedule);
         await _context.SaveChangesAsync();

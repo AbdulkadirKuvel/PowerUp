@@ -13,10 +13,14 @@ public class ServiceController(ApplicationDbContext context) : Controller
 
     public async Task<IActionResult> Index()
     {
-        var services = await _context.Services.ToListAsync();
+        var services = await _context.Services
+            .Include(s => s.TrainerServices)
+            .ThenInclude(ts => ts.Trainer)
+            .ToListAsync();
         return View(services);
     }
 
+    // Detaylarda artık o hizmeti veren hocaların fiyatlarını da görebileceğiz.
     public async Task<IActionResult> Details(int id)
     {
         var service = await _context.Services
@@ -106,6 +110,7 @@ public class ServiceController(ApplicationDbContext context) : Controller
         return RedirectToAction("Index");
     }
 
+    // --- MEVCUT METOT ---
     [Authorize(Roles = Roles.RoleTrainer)]
     public async Task<IActionResult> GetAvailableServices(int trainerId)
     {
@@ -123,5 +128,43 @@ public class ServiceController(ApplicationDbContext context) : Controller
             .ToListAsync();
 
         return Json(availableServices);
+    }
+
+    // --- YENİ EKLENMESİ GEREKEN METOT ---
+    // Antrenör kendine hizmet eklerken artık Fiyat bilgisini de göndermeli.
+    [HttpPost]
+    [Authorize(Roles = Roles.RoleTrainer)] 
+    public async Task<IActionResult> AddServiceToTrainer(int trainerId, int serviceId, decimal price)
+    {
+        // 1. Antrenör ve Hizmet var mı kontrol et
+        var trainer = await _context.Trainers.FindAsync(trainerId);
+        var service = await _context.Services.FindAsync(serviceId);
+
+        if (trainer == null || service == null)
+        {
+            return Json(new { success = false, message = "Eğitmen veya Hizmet bulunamadı." });
+        }
+
+        // 2. Bu hizmet daha önce eklenmiş mi?
+        var exists = await _context.Set<TrainerService>()
+            .AnyAsync(ts => ts.TrainerId == trainerId && ts.ServiceId == serviceId);
+
+        if (exists)
+        {
+            return Json(new { success = false, message = "Bu hizmet zaten ekli." });
+        }
+
+        // 3. İlişkiyi FİYAT bilgisiyle birlikte kaydet
+        var trainerService = new TrainerService
+        {
+            TrainerId = trainerId,
+            ServiceId = serviceId,
+            Price = price // Fiyat burada set ediliyor
+        };
+
+        _context.Add(trainerService);
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true, message = "Hizmet ve fiyat başarıyla eklendi." });
     }
 }

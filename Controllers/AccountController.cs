@@ -137,4 +137,24 @@ public class AccountController : Controller
 
         return View();
     }
+
+    [Authorize]
+    public async Task<IActionResult> MyAppointments()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return RedirectToAction("Login");
+
+        var appointments = await _context.Appointments
+            .Where(a => a.UserId == user.Id)
+            .Include(a => a.Trainer)
+            .ThenInclude(t => t.Gym)
+            .Include(a => a.ScheduleSlot)
+            .ThenInclude(s => s!.ScheduleSlotServices!)
+            .ThenInclude(ss => ss.Service)
+            .OrderByDescending(a => a.AppointmentDate)
+            .ToListAsync();
+
+        return View(appointments);
+    }
 }
