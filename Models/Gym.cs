@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+
 namespace PowerUp.Models;
 
 public class Gym
@@ -17,4 +18,7 @@ public class Gym
 
     public ICollection<Trainer> Trainers { get; set; } = [];
     public ICollection<Subscription> Subscriptions { get; set; } = [];
+    
+    // YENİ EKLENEN KISIM:
+    public ICollection<GymFeature> Features { get; set; } = [];
 }

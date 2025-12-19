@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.Net.Http.Headers;
 namespace PowerUp.Models;
 
 public class Trainer
@@ -15,6 +16,8 @@ public class Trainer
     [ForeignKey("Gym")]
     public int GymId { get; set; }
     public Gym? Gym { get; set; }
+
+    public string? GymName => Gym?.Name ?? "Spor Salonu Bilinmiyor";
 
     [ForeignKey("ApplicationUser")]
     public string? ApplicationUserId { get; set; }

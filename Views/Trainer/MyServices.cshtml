@@ -4,17 +4,18 @@
 @model Trainer
 
 @{
-    ViewData["Title"] = "Sundığum Hizmetler";
+    ViewData["Title"] = "Sunduğum Hizmetler";
 }
 
 <div class="container mt-5">
-    <div class="row mb-4">
+    <div class="row mb-4 align-items-center">
         <div class="col-md-8">
-            <h2>Sundığum Hizmetler</h2>
+            <h2 class="text-white"><i class="fas fa-list-ul me-2 text-warning"></i>Sunduğum Hizmetler</h2>
+            <p class="text-muted">Bu sayfada verdiğiniz hizmetleri ve ücretlerini yönetebilirsiniz.</p>
         </div>
         <div class="col-md-4 text-end">
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addServiceModal">
-                + Hizmet Ekle
+            <button class="btn btn-warning fw-bold" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                <i class="fas fa-plus me-2"></i>Yeni Hizmet Ekle
             </button>
         </div>
     </div>
@@ -24,15 +25,23 @@
         <div class="row">
             @foreach (var service in Model.TrainerServices)
             {
-                <div class="col-md-6 mb-3">
-                    <div class="card">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-0 shadow-sm service-item">
                         <div class="card-body d-flex justify-content-between align-items-center">
                             <div>
-                                <h5 class="card-title mb-0">@service.Service?.Name</h5>
+                                <h5 class="card-title mb-1 text-warning">@service.Service?.Name</h5>
+                                <div class="badge bg-secondary text-white p-2">
+                                    <i class="fas fa-tag me-1"></i> @service.Price.ToString("C2")
+                                </div>
                             </div>
-                            <a class="btn btn-sm btn-danger" asp-action="RemoveService" asp-route-serviceId="@service.ServiceId">
-                                Kaldır
-                            </a>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-light btn-sm" onclick="openEditPriceModal(@service.ServiceId, '@service.Service?.Name', @service.Price)">
+                                    <i class="fas fa-edit me-1"></i> Fiyatı Düzenle
+                                </button>
+                                <a class="btn btn-outline-danger btn-sm" asp-action="RemoveService" asp-route-serviceId="@service.ServiceId">
+                                    <i class="fas fa-trash-alt me-1"></i> Kaldır
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -41,33 +50,76 @@
     }
     else
     {
-        <div class="alert alert-info">
-            Henüz hiçbir hizmet eklememediniz.
+        <div class="alert alert-dark border-secondary text-white">
+            <i class="fas fa-info-circle me-2"></i>Henüz hiçbir hizmet eklememişsiniz. Sağ üstteki butondan ekleyebilirsiniz.
         </div>
     }
 
     <div class="mt-4">
-        <a class="btn btn-secondary" asp-action="Index">Geri Dön</a>
+        <a class="btn btn-outline-light" asp-controller="Trainer" asp-action="Index">
+            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+        </a>
     </div>
 </div>
 
-<!-- Modal for Adding Service -->
 <div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addServiceModalLabel">Hizmet Ekle</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="addServiceModalLabel">Hizmet ve Fiyat Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="addServiceForm" method="post" asp-action="AddService">
+            <form id="addServiceForm" method="post" asp-controller="Service" asp-action="AddServiceToTrainer">
+                <input type="hidden" name="trainerId" value="@Model.Id" />
+                
                 <div class="modal-body">
-                    <div class="mb-3" id="serviceList">
-                        <!-- Services will be loaded here dynamically -->
+                    <div class="mb-4">
+                        <label class="form-label text-warning mb-2">1. Hizmet Seçiniz</label>
+                        <div id="serviceList" class="d-flex flex-column gap-2">
+                            <div class="text-center py-3">
+                                <div class="spinner-border text-warning" role="status"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="priceInput" class="form-label text-warning">2. Hizmet Ücreti (₺)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-secondary border-secondary text-white">₺</span>
+                            <input type="number" class="form-control bg-dark text-white border-secondary" 
+                                   id="priceInput" name="price" step="0.01" min="0" required placeholder="0.00">
+                        </div>
+                        <div class="form-text text-muted">Bu hizmet için talep ettiğiniz ders başı ücret.</div>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                    <button type="submit" class="btn btn-primary">Ekle</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold">Kaydet ve Ekle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Price Modal -->
+<div class="modal fade" id="editPriceModal" tabindex="-1" aria-labelledby="editPriceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="editPriceModalLabel">Hizmet Fiyatını Düzenle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editPriceForm">
+                <input type="hidden" id="editServiceId" name="serviceId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editPriceInput" class="form-label">Fiyat (₺)</label>
+                        <input type="number" class="form-control bg-dark text-white border-secondary" id="editPriceInput" name="price" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold">Güncelle</button>
                 </div>
             </form>
         </div>
@@ -76,7 +128,6 @@
 
 @section Scripts {
     <script>
-        // Load available services when modal opens
         const addServiceModal = document.getElementById('addServiceModal');
         addServiceModal.addEventListener('show.bs.modal', async () => {
             try {
@@ -85,21 +136,85 @@
                 const serviceList = document.getElementById('serviceList');
                 
                 if (services.length === 0) {
-                    serviceList.innerHTML = '<p class="text-muted">Tüm hizmetleri eklemişsiniz veya hiçbir hizmet yoktur.</p>';
+                    serviceList.innerHTML = '<div class="alert alert-success">Tüm mevcut hizmetleri zaten profilinize eklemişsiniz.</div>';
+                    document.getElementById('priceInput').disabled = true;
+                    document.querySelector('button[type="submit"]').disabled = true;
                     return;
                 }
                 
                 serviceList.innerHTML = services.map(service => `
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="serviceId" value="${service.id}" id="service_${service.id}">
-                        <label class="form-check-label" for="service_${service.id}">
+                    <div class="form-check p-2 border border-secondary rounded hover-bg-dark">
+                        <input class="form-check-input ms-1" type="radio" name="serviceId" value="${service.id}" id="service_${service.id}" required>
+                        <label class="form-check-label ms-2 w-100" for="service_${service.id}" style="cursor:pointer;">
                             ${service.name}
                         </label>
                     </div>
                 `).join('');
+                
+                // Form elementlerini tekrar aktif et
+                document.getElementById('priceInput').disabled = false;
+                document.querySelector('button[type="submit"]').disabled = false;
+
             } catch (error) {
-                document.getElementById('serviceList').innerHTML = '<p class="text-danger">Hizmetler yüklenemeddi.</p>';
+                document.getElementById('serviceList').innerHTML = '<p class="text-danger">Hizmet listesi yüklenirken hata oluştu.</p>';
             }
         });
+
+        // Form submit işlemi (AJAX ile daha şık bir deneyim için)
+        document.getElementById('addServiceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    location.reload(); // Başarılıysa sayfayı yenile
+                } else {
+                    alert('Hata: ' + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Bir hata oluştu.');
+            }
+        });
+
+        function openEditPriceModal(serviceId, serviceName, price) {
+            document.getElementById('editServiceId').value = serviceId;
+            document.getElementById('editPriceInput').value = price;
+            const editModal = new bootstrap.Modal(document.getElementById('editPriceModal'));
+            editModal.show();
+        }
+
+        document.getElementById('editPriceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const serviceId = document.getElementById('editServiceId').value;
+            const price = document.getElementById('editPriceInput').value;
+
+            try {
+                const resp = await fetch('/Trainer/UpdateServicePrice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ serviceId: parseInt(serviceId), price: parseFloat(price) })
+                });
+                const data = await resp.json();
+                if (resp.ok && data.success) {
+                    location.reload();
+                } else {
+                    window.DialogBox.show({ type: 'error', title: 'Hata', message: data.message || 'Güncelleme başarısız.' });
+                }
+            } catch (err) {
+                console.error(err);
+                window.DialogBox.show({ type: 'error', title: 'Hata', message: 'Güncelleme sırasında hata oluştu.' });
+            }
+        });
+
     </script>
+    
+
 }

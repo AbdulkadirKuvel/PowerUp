@@ -1,0 +1,52 @@
+@model List<PowerUp.Models.Appointment>
+
+@{
+    ViewData["Title"] = "Tüm Randevular";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Tüm Randevular</h2>
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="alert alert-secondary">Henüz randevu yok.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dark-theme table-striped">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Saat</th>
+                        <th>Antrenör</th>
+                        <th>Kullanıcı</th>
+                        <th>Hizmet</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model)
+                    {
+                        <tr>
+                            <td>@a.AppointmentDate.ToString("dd.MM.yyyy")</td>
+                            <td>@(a.ScheduleSlot != null ? a.ScheduleSlot.Hour + ":00 - " + (a.ScheduleSlot.Hour + 1) + ":00" : "")</td>
+                            <td>@a.Trainer?.Name</td>
+                            <td>@a.User?.UserName</td>
+                            <td>@string.Join(", ", a.ScheduleSlot?.ScheduleSlotServices?.Select(ss => ss.Service?.Name) ?? new List<string>())</td>
+                            <td>
+                                @switch (a.Status)
+                                {
+                                    case 0: <span class="badge bg-warning text-dark">Beklemede</span>; break;
+                                    case 1: <span class="badge bg-success">Kabul</span>; break;
+                                    case 2: <span class="badge bg-danger">Reddedildi</span>; break;
+                                    case 3: <span class="badge bg-secondary">İptal</span>; break;
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
