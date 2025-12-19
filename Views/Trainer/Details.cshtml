@@ -1,0 +1,74 @@
+@model PowerUp.Models.Trainer
+
+@{
+    ViewData[index: "Title"] = "Antrenör Detayları";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 trainer-card">
+
+                <div class="card-header trainer-header">
+                    <div class="mb-3">
+                        <div class="trainer-avatar">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                    </div>
+                    <h2 class="text-white mb-0">@Model.Name</h2>
+                    <p class="text-white-50 mb-0">Profesyonel Antrenör</p>
+                </div>
+
+                <div class="card-body p-5">
+                    <div class="d-flex align-items-center mb-4 p-3 trainer-gym rounded">
+                        <i class="fas fa-building fa-lg text-warning me-3"></i>
+                        <div>
+                            <small class="text-muted">Çalıştığı Salon: </small>
+
+                            <span class="fw-bold text-white">@Model.GymName</span>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4 mb-3 border-bottom pb-2 text-secondary">
+                        <i class="fas fa-dumbbell me-2"></i>Verilen Hizmetler
+                    </h4>
+
+                    @if (Model.TrainerServices != null && Model.TrainerServices.Any())
+                    {
+                        <div class="row g-3">
+                            @foreach (TrainerService service in Model.TrainerServices)
+                            {
+                                <div class="col-md-6">
+                                    <div class="service-card">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            <span class="service-name">@(service.Service?.Name ?? "Hizmet")</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="service-price">@service.Price.ToString("C2")</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light text-center" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>Bu antrenör henüz hizmet bilgisi eklememiştir.
+                        </div>
+                    }
+
+                    <div class="mt-5 d-flex gap-2 justify-content-end"> 
+                        <a class="btn btn-secondary px-4 btn-pill" asp-action="Index">
+                            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                        </a>
+                        <a class="btn btn-accent px-4 btn-pill" asp-action="TakeAppointment" asp-route-id="@Model.Id">
+                            <i class="fas fa-calendar-check me-2"></i>Randevu Al
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
