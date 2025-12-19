@@ -15,13 +15,21 @@ public class NotificationService
 
     public async Task CreateNotificationAsync(string userId, string subject, string description)
     {
+        await CreateNotificationAsync(userId, subject, description, null, null, null);
+    }
+
+    public async Task CreateNotificationAsync(string userId, string subject, string description, string? actionType, string? actionPayload, string? actionLabel)
+    {
         var notification = new Notification
         {
             UserId = userId,
             Subject = subject,
             Description = description,
             IsRead = false,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now,
+            ActionType = actionType,
+            ActionPayload = actionPayload,
+            ActionLabel = actionLabel
         };
 
         _context.Notifications.Add(notification);
