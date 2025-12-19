@@ -7,7 +7,19 @@ class DialogBox {
     constructor() {
         this.modal = null;
         this.backdrop = null;
+        // Default icons (can be overridden with setIcons)
+        this.icons = {
+            informant: { html: '✓', color: '#667eea' },
+            warning: { html: '!', color: '#f5576c' },
+            error: { html: '✕', color: '#fa709a' },
+            list: { html: '🔔', color: '#667eea' }
+        };
         this.initializeDOM();
+    }
+
+    // Allow external code to override icons (partial merge)
+    setIcons(icons) {
+        this.icons = Object.assign({}, this.icons, icons || {});
     }
 
     initializeDOM() {
@@ -190,6 +202,10 @@ class DialogBox {
                 .dialog-list .dialog-header-title {
                     color: white;
                 }
+
+                .dialog-checkbox-area {
+                    border-top: 1px solid #f0f0f0;
+                }
             `;
             document.head.appendChild(style);
         }
@@ -201,7 +217,7 @@ class DialogBox {
     }
 
     show(config) {
-        const { type = 'informant', title = '', message = '', buttons = [], items = [] } = config;
+        const { type = 'informant', title = '', message = '', buttons = [], items = [], checkbox = null } = config;
 
         this.modal.className = `dialog-${type}`;
         this.modal.innerHTML = '';
@@ -213,22 +229,30 @@ class DialogBox {
         const icon = document.createElement('div');
         icon.className = 'dialog-header-icon';
         
-        switch (type) {
-            case 'informant':
-                icon.innerHTML = '✓';
-                icon.style.color = '#667eea';
-                break;
-            case 'warning':
-                icon.innerHTML = '!';
-                icon.style.color = '#f5576c';
-                break;
-            case 'error':
-                icon.innerHTML = '✕';
-                icon.style.color = '#fa709a';
-                break;
-            case 'list':
-                icon.innerHTML = '🔔';
-                break;
+        // Use configured icons if present
+        const iconCfg = (this.icons && this.icons[type]) ? this.icons[type] : null;
+        if (iconCfg) {
+            icon.innerHTML = iconCfg.html || '';
+            if (iconCfg.color) icon.style.color = iconCfg.color;
+        } else {
+            // Fallback
+            switch (type) {
+                case 'informant':
+                    icon.innerHTML = '✓';
+                    icon.style.color = '#667eea';
+                    break;
+                case 'warning':
+                    icon.innerHTML = '!';
+                    icon.style.color = '#f5576c';
+                    break;
+                case 'error':
+                    icon.innerHTML = '✕';
+                    icon.style.color = '#fa709a';
+                    break;
+                case 'list':
+                    icon.innerHTML = '🔔';
+                    break;
+            }
         }
 
         const titleEl = document.createElement('h3');
@@ -288,6 +312,31 @@ class DialogBox {
 
         this.modal.appendChild(body);
 
+        // Optional checkbox area (for confirmations that require an explicit checkbox)
+        let checkboxEl = null;
+        if (checkbox && checkbox.label) {
+            const checkboxArea = document.createElement('div');
+            checkboxArea.className = 'dialog-checkbox-area';
+            checkboxArea.style.padding = '0 24px 12px';
+
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.id = 'dialog-confirm-checkbox';
+            cb.checked = checkbox.checked || false;
+            cb.style.marginRight = '8px';
+
+            const lbl = document.createElement('label');
+            lbl.htmlFor = cb.id;
+            lbl.textContent = checkbox.label;
+            lbl.style.fontSize = '14px';
+            lbl.style.color = '#333';
+
+            checkboxArea.appendChild(cb);
+            checkboxArea.appendChild(lbl);
+            this.modal.appendChild(checkboxArea);
+            checkboxEl = cb;
+        }
+
         // Footer
         const footer = document.createElement('div');
         footer.className = 'dialog-footer';
@@ -311,6 +360,13 @@ class DialogBox {
             button.addEventListener('click', () => {
                 if (btn.action) btn.action();
             });
+            // If checkbox is required, disable primary buttons until checked
+            if (checkboxEl && btn.isPrimary) {
+                button.disabled = !checkboxEl.checked;
+                checkboxEl.addEventListener('change', () => {
+                    button.disabled = !checkboxEl.checked;
+                });
+            }
             footer.appendChild(button);
         });
 
