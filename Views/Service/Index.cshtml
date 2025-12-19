@@ -8,25 +8,217 @@
 @{
     ViewData["Title"] = "Hizmetler";
     var user = await UserManager.GetUserAsync(User);
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    :root {
+        --primary-color: #e31c25;
+        --dark-bg: #111111;
+        --card-bg: #1a1a1a;
+        --text-color: #ffffff;
+        --btn-gradient: linear-gradient(135deg, #e31c25 0%, #b01018 100%);
+    }
+
+    body {
+        background-color: var(--dark-bg);
+        color: var(--text-color);
+    }
+
+    /* Başlık Alanı */
+    .page-header {
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 20px;
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: white;
+    }
+
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: var(--primary-color);
+        margin-top: 10px;
+        border-radius: 2px;
+    }
+
+    /* Kart Yapısı */
+    .service-card {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .service-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(227, 28, 37, 0.15);
+        border-color: var(--primary-color);
+    }
+
+    /* Kart Resmi */
+    .card-img-wrapper {
+        height: 180px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .card-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .service-card:hover .card-img-wrapper img {
+        transform: scale(1.1);
+    }
+
+    /* Kart İçeriği */
+    .card-body {
+        padding: 25px;
+        flex-grow: 1;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: white;
+    }
+
+    /* Eğitmen Listesi Stili */
+    .trainer-info-box {
+        background: rgba(255,255,255,0.03);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+
+    .trainer-count {
+        font-size: 0.9rem;
+        color: #aaaaaa;
+        margin-bottom: 10px;
+        display: block;
+        font-weight: 600;
+    }
+
+    .trainer-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .trainer-list li {
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .trainer-list li i {
+        color: var(--primary-color);
+        margin-right: 8px;
+        font-size: 0.8rem;
+    }
+
+    .trainer-list li a {
+        color: #e0e0e0;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .trainer-list li a:hover {
+        color: var(--primary-color);
+    }
+
+    /* Butonlar */
+    .btn-add-new {
+        background: var(--btn-gradient);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 50px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(227, 28, 37, 0.4);
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+    }
+
+    .btn-add-new:hover {
+        transform: scale(1.05);
+        color: white;
+        box-shadow: 0 6px 20px rgba(227, 28, 37, 0.6);
+    }
+
+    .card-footer-custom {
+        padding: 15px 25px;
+        background: rgba(0,0,0,0.2);
+        border-top: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-custom-sm {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: all 0.3s;
+    }
+
+    .btn-outline-info { border-color: #0dcaf0; color: #0dcaf0; }
+    .btn-outline-info:hover { background: #0dcaf0; color: #000; }
+
+    .btn-outline-warning { border-color: #ffc107; color: #ffc107; }
+    .btn-outline-warning:hover { background: #ffc107; color: #000; }
+
+    .btn-outline-danger { border-color: #dc3545; color: #dc3545; }
+    .btn-outline-danger:hover { background: #dc3545; color: white; }
+
+</style>
+
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <div class="container mt-5">
-    <div class="row mb-4">
+    
+    <div class="row align-items-center page-header" data-aos="fade-down">
         <div class="col-md-8">
-            <h2>Hizmetler</h2>
+            <h2 class="section-title">Hizmetler</h2>
+            <p class="text-muted">Salonlarımızda sunulan profesyonel hizmetler.</p>
         </div>
         @if (User.IsInRole(Roles.RoleAdmin))
         {
-            <div class="col-md-4 text-end">
-                <a class="btn btn-success" asp-action="Create">+ Hizmet Ekle</a>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a class="btn-add-new" asp-action="Create">
+                    <i class="fas fa-plus me-2"></i>Hizmet Ekle
+                </a>
             </div>
         }
     </div>
 
     @if (Model.Count == 0)
     {
-        <div class="alert alert-info">
-            Henüz hizmet eklenmemiştir.
+        <div class="alert alert-info bg-dark text-white border-info" data-aos="fade-up">
+            <i class="fas fa-info-circle me-2"></i> Henüz hizmet eklenmemiştir.
         </div>
     }
     else
@@ -34,36 +226,75 @@
         <div class="row">
             @foreach (var service in Model)
             {
-                <div class="col-md-6 mb-4">
-                    <div class="card">
+                <div class="col-md-6 mb-4" data-aos="fade-up" data-aos-duration="800">
+                    <div class="service-card">
+                        
+                        <div class="card-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Hizmet Resmi">
+                        </div>
+
                         <div class="card-body">
                             <h5 class="card-title">@service.Name</h5>
-                            <p class="card-text text-muted">
+                            
+                            <div class="trainer-info-box">
                                 @if (service.TrainerServices != null && service.TrainerServices.Count > 0)
                                 {
-                                    <span>@service.TrainerServices.Count eğitmenci tarafından sunulmaktadır</span>
+                                    <span class="trainer-count">
+                                        <i class="fas fa-users me-1"></i> 
+                                        @service.TrainerServices.Count Eğitmen bu hizmeti veriyor:
+                                    </span>
+                                    <ul class="trainer-list">
+                                        @foreach (var ts in service.TrainerServices.Take(3))
+                                        {
+                                            <li>
+                                                <i class="fas fa-check-circle"></i>
+                                                <a href="@Url.Action("Details","Trainer", new { id = ts.TrainerId })">
+                                                    @ts.Trainer?.Name
+                                                </a>
+                                            </li>
+                                        }
+                                        @if (service.TrainerServices.Count > 3)
+                                        {
+                                            <li class="text-muted small ms-3">ve @(service.TrainerServices.Count - 3) kişi daha...</li>
+                                        }
+                                    </ul>
                                 }
                                 else
                                 {
-                                    <span>Henüz hiçbir eğitmenci bu hizmeti sunmamaktadır</span>
+                                    <span class="text-muted small">
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        Henüz bu hizmeti veren eğitmen yok.
+                                    </span>
                                 }
-                            </p>
-                            <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@service.Id">
-                                Detayları Gör
+                            </div>
+                        </div>
+
+                        <div class="card-footer-custom">
+                            <a class="btn-custom-sm btn-outline-info" asp-action="Details" asp-route-id="@service.Id">
+                                Detay
                             </a>
+                            
                             @if (User.IsInRole(Roles.RoleAdmin))
                             {
-                                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@service.Id">
+                                <a class="btn-custom-sm btn-outline-warning" asp-action="Edit" asp-route-id="@service.Id">
                                     Düzenle
                                 </a>
-                                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@service.Id">
+                                <a class="btn-custom-sm btn-outline-danger" asp-action="Delete" asp-route-id="@service.Id">
                                     Sil
                                 </a>
                             }
                         </div>
+
                     </div>
                 </div>
             }
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+}

@@ -1,0 +1,83 @@
+@using PowerUp.Models
+
+@model Trainer
+
+@{
+    ViewData["Title"] = "Antrenör Sil";
+    
+    // Inject DbContext if needed to check for appointments
+    var hasAcceptedAppointments = Model.Id > 0; // This will be set by controller
+    if (ViewBag.HasAcceptedAppointments != null)
+    {
+        hasAcceptedAppointments = ViewBag.HasAcceptedAppointments;
+    }
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Antrenörü Sil</h2>
+            <p class="text-muted">Bu işlem geri alınamaz. Lütfen dikkatli olunuz.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Silme Onayı
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Dikkat:</strong> Bu antrenörü silmek, tüm ilişkili verileri (randevular, zaman dilimleri, hizmetler) silecektir.
+                    </div>
+
+                    @if (ViewBag.HasAcceptedAppointments)
+                    {
+                        <div class="alert alert-info">
+                            <strong>ℹ️ Bilgi:</strong> Bu antrenörün <strong>@ViewBag.AcceptedAppointmentCount</strong> tane kabul edilen randevusu bulunmaktadır. Bu randevular iptal edilecektir ve müşteriler bilgilendirilecektir.
+                        </div>
+                    }
+
+                    <h6>Silinecek Antrenör Bilgileri:</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Ad Soyad:</strong> @Model.Name</li>
+                        <li><strong>Telefon:</strong> @Model.PhoneNumber</li>
+                        <li><strong>Spor Salonu:</strong> @Model.Gym?.Name</li>
+                        <li><strong>Hizmet Sayısı:</strong> @(Model.TrainerServices?.Count ?? 0)</li>
+                    </ul>
+
+                    <form method="post" asp-action="DeleteConfirmed" class="mt-4">
+                        <input type="hidden" name="id" value="@Model.Id">
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                <label class="form-check-label" for="confirmDelete">
+                                    Bu antrenörü silmeyi onaylıyorum. Bu işlem geri alınamaz.
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                                <i class="fas fa-trash"></i> Antrenörü Sil
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('confirmDelete').addEventListener('change', function() {
+        document.getElementById('deleteBtn').disabled = !this.checked;
+    });
+</script>

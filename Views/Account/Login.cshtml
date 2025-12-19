@@ -1,123 +1,232 @@
 @{
     ViewData["Title"] = "Giriş Yap / Kaydol";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            @{
-                var signupSuccess = TempData["SignUpSuccess"] as bool?;
-                var newUsername = TempData["NewUsername"] as string;
-            }
-            @if (signupSuccess == true)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <strong>Başarılı!</strong> Hesabınız başarıyla oluşturuldu. Hoşgeldiniz <strong>@(newUsername ?? "Kullanıcı")</strong>! Lütfen giriş yapın.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
+<style>
+    :root {
+        --primary-color: #e31c25;
+        --dark-bg: #111111;
+        --card-bg: #1a1a1a;
+        --input-bg: #2a2a2a;
+        --text-color: #ffffff;
+    }
 
-            <!-- Nav Tabs -->
-            <ul class="nav nav-tabs" id="authTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">
-                        Giriş Yap
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab" aria-controls="signup" aria-selected="false">
-                        Kaydol
-                    </button>
-                </li>
-            </ul>
+    /* Arka Plan ve Düzen */
+    .auth-wrapper {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background-color: var(--dark-bg);
+        overflow: hidden;
+    }
 
-            <!-- Tab Content -->
-            <div class="tab-content" id="authTabsContent">
-                <!-- Login Tab -->
-                <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
-                    <div class="card">
-                        <div class="card-body p-4">
-                            <h5 class="card-title mb-4">Giriş Yap</h5>
-                            <form method="post" asp-action="Login">
-                                <div class="mb-3">
-                                    <label for="loginEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="loginEmail" name="email" placeholder="example@gmail.com" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="loginPassword" class="form-label">Şifre</label>
-                                    <input type="password" class="form-control" id="loginPassword" name="password" placeholder="Şifrenizi girin" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
-                            </form>
+    /* Arka Plan Görseli */
+    .auth-bg-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.3;
+        z-index: 0;
+        filter: blur(3px);
+    }
 
-                            @if (ViewData.ModelState.Count > 0 && !ViewData.ModelState.IsValid)
-                            {
-                                <div class="alert alert-danger mt-3">
-                                    @foreach (var modelState in ViewData.ModelState.Values)
-                                    {
-                                        @foreach (var error in modelState.Errors)
-                                        {
-                                            <p>@error.ErrorMessage</p>
-                                        }
-                                    }
-                                </div>
-                            }
-                        </div>
+    /* Ana Kart */
+    .auth-card {
+        background-color: rgba(26, 26, 26, 0.95);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Tab Yapısı */
+    .nav-tabs {
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: rgba(0,0,0,0.2);
+    }
+
+    .nav-tabs .nav-link {
+        color: #888;
+        border: none;
+        padding: 20px;
+        font-weight: 600;
+        transition: all 0.3s;
+        border-radius: 0;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: white;
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: transparent;
+        color: var(--primary-color);
+        border-bottom: 3px solid var(--primary-color);
+    }
+
+    /* Form Elemanları */
+    .form-label {
+        color: #ccc;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        background-color: var(--input-bg);
+        border: 1px solid rgba(255,255,255,0.05);
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .form-control:focus {
+        background-color: #333;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(227, 28, 37, 0.25);
+        color: white;
+    }
+
+    /* Butonlar */
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #e31c25 0%, #b01018 100%);
+        border: none;
+        padding: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-top: 10px;
+        transition: transform 0.2s;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(227, 28, 37, 0.4);
+    }
+    
+    .btn-success-custom {
+         background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+         border: none;
+         padding: 12px;
+         font-weight: 700;
+         text-transform: uppercase;
+    }
+
+    .card-title {
+        color: white;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 25px;
+        font-size: 1.5rem;
+    }
+
+</style>
+
+<div class="auth-wrapper">
+    
+    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" class="auth-bg-image" alt="Gym Background">
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                
+                @if (TempData["SignUpSuccess"] as bool? == true)
+                {
+                    <div class="alert alert-success bg-dark border-success text-white alert-dismissible fade show mb-4" role="alert" style="z-index:2; position:relative;">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Başarılı!</strong> Hesabınız oluşturuldu. Hoşgeldiniz <strong>@(TempData["NewUsername"])</strong>!
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                </div>
+                }
 
-                <!-- SignUp Tab -->
-                <div class="tab-pane fade" id="signup" role="tabpanel" aria-labelledby="signup-tab">
-                    <div class="card">
-                        <div class="card-body p-4">
-                            <h5 class="card-title mb-4">Kaydol</h5>
-                            <form method="post" asp-action="SignUp">
-                                <div class="mb-3">
-                                    <label for="signupUsername" class="form-label">Kullanıcı Adı</label>
-                                    <input type="text" class="form-control" id="signupUsername" name="username" placeholder="Kullanıcı adı girin" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="signupEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="signupEmail" name="email" placeholder="example@gmail.com" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="signupPassword" class="form-label">Şifre</label>
-                                    <input type="password" class="form-control" id="signupPassword" name="password" placeholder="Şifrenizi girin" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="confirmPassword" class="form-label">Şifreyi Onayla</label>
-                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Şifrenizi tekrar girin" required>
-                                </div>
-                                <button type="submit" class="btn btn-success w-100">Kaydol</button>
-                            </form>
+                <div class="auth-card">
+                    <ul class="nav nav-tabs nav-fill" id="authTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">
+                                <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab" aria-controls="signup" aria-selected="false">
+                                <i class="fas fa-user-plus me-2"></i>Kaydol
+                            </button>
+                        </li>
+                    </ul>
 
-                            @if (ViewData.ModelState.Count > 0 && !ViewData.ModelState.IsValid)
-                            {
-                                <div class="alert alert-danger mt-3">
-                                    @foreach (var modelState in ViewData.ModelState.Values)
-                                    {
-                                        @foreach (var error in modelState.Errors)
-                                        {
-                                            <p>@error.ErrorMessage</p>
-                                        }
-                                    }
-                                </div>
-                            }
+                    <div class="card-body p-4 p-md-5">
+                        <div class="tab-content" id="authTabsContent">
+                            
+                            <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                                <h5 class="card-title">Hesabına Eriş</h5>
+                                <form method="post" asp-action="Login">
+                                    <div class="mb-3">
+                                        <label for="loginEmail" class="form-label">Email Adresi</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fas fa-envelope"></i></span>
+                                            <input type="email" class="form-control" id="loginEmail" name="email" placeholder="ornek@gmail.com" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="loginPassword" class="form-label">Şifre</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fas fa-lock"></i></span>
+                                            <input type="password" class="form-control" id="loginPassword" name="password" placeholder="******" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-primary-custom w-100">Giriş Yap</button>
+                                </form>
+                            </div>
+
+                            <div class="tab-pane fade" id="signup" role="tabpanel" aria-labelledby="signup-tab">
+                                <h5 class="card-title">Aramıza Katıl</h5>
+                                <form method="post" asp-action="SignUp">
+                                    <div class="mb-3">
+                                        <label for="signupUsername" class="form-label">Kullanıcı Adı</label>
+                                        <input type="text" class="form-control" id="signupUsername" name="username" placeholder="Kullanıcı adı seçin" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="signupEmail" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="signupEmail" name="email" placeholder="ornek@gmail.com" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="signupPassword" class="form-label">Şifre</label>
+                                            <input type="password" class="form-control" id="signupPassword" name="password" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="confirmPassword" class="form-label">Tekrar</label>
+                                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-success-custom w-100">Hesap Oluştur</button>
+                                </form>
+                            </div>
+
                         </div>
+
+                        @if (ViewData.ModelState.Count > 0 && !ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger bg-dark border-danger text-danger mt-4 p-2 small">
+                                @foreach (var modelState in ViewData.ModelState.Values)
+                                {
+                                    foreach (var error in modelState.Errors)
+                                    {
+                                        <div><i class="fas fa-exclamation-circle me-1"></i> @error.ErrorMessage</div>
+                                    }
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    .nav-tabs .nav-link {
-        color: #6c757d;
-    }
-
-    .nav-tabs .nav-link.active {
-        color: #495057;
-        font-weight: 600;
-    }
-</style>

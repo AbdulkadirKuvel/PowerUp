@@ -1,7 +1,7 @@
 @model List<Appointment>
 
 @{
-    ViewData["Title"] = "Randevular";
+    ViewData["Title"] = "Randevularım";
     var awaitingAppointments = Model.Where(a => a.Status == 0).ToList();
     var acceptedAppointments = Model.Where(a => a.Status == 1).ToList();
     var completedAppointments = Model.Where(a => a.Status == 3).ToList();
@@ -16,7 +16,7 @@
                     <h2 class="mb-0">
                         <i class="fas fa-calendar-check"></i> Randevularım
                     </h2>
-                    <small class="text-muted">Müşteri taleplerini yönetin ve kabul/reddet edin</small>
+                    <small class="text-muted">Tüm randevu taleplerini ve sonuçlarını görüntüleyin</small>
                 </div>
                 <div>
                     <button class="btn btn-outline-primary btn-sm" id="viewToggleBtn" onclick="toggleView()">
@@ -49,9 +49,7 @@
         }
     </script>
 
-    <div id="listViewContainer">
-
-    <!-- Awaiting Appointments -->
+    <div id="listViewContainer">    <!-- Requested/Awaiting Appointments -->
     <div class="card mb-4" style="border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
         <div class="card-header" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); border-radius: 15px 15px 0 0; border: none;">
             <h5 class="mb-0 text-white">
@@ -74,16 +72,17 @@
                         <div class="col-md-6 mb-3">
                             <div class="card h-100" style="border-radius: 12px; border: 2px solid #ffc107; transition: all 0.3s ease;">
                                 <div class="card-body">
-                                    <h6 class="card-title">
-                                        <i class="fas fa-user-circle"></i> @appointment.User?.UserName
+                                    <h6 class="card-title" style="color: #fff;">
+                                        <i class="fas fa-user-tie"></i> @appointment.Trainer?.Name
                                     </h6>
-                                    <p class="mb-2">
+                                    <small style="color: #aaa;"><i class="fas fa-building"></i> @appointment.Trainer?.Gym?.Name</small>
+                                    <p class="mb-2 mt-3" style="color: #ddd;">
                                         <strong>Tarih:</strong> @appointment.AppointmentDate.ToString("dd/MM/yyyy")
                                     </p>
-                                    <p class="mb-2">
+                                    <p class="mb-2" style="color: #ddd;">
                                         <strong>Saat:</strong> @appointment.ScheduleSlot?.Hour:00 - @((appointment.ScheduleSlot?.Hour ?? 0) + 1):00
                                     </p>
-                                    <p class="mb-2">
+                                    <p class="mb-3" style="color: #ddd;">
                                         <strong>Hizmetler:</strong>
                                         @if (appointment.ScheduleSlot?.ScheduleSlotServices?.Any() == true)
                                         {
@@ -94,24 +93,8 @@
                                             }
                                         }
                                     </p>
-                                    @if (!string.IsNullOrEmpty(appointment.Notes))
-                                    {
-                                        <p class="mb-3">
-                                            <strong>Notlar:</strong><br />
-                                            <small class="text-muted">@appointment.Notes</small>
-                                        </p>
-                                    }
-                                    <div class="d-grid gap-2">
-                                        <form method="post" asp-action="AcceptAppointment" asp-route-id="@appointment.Id" style="display: inline;">
-                                            <button type="submit" class="btn btn-success btn-sm w-100 mb-2">
-                                                <i class="fas fa-check"></i> Kabul Et
-                                            </button>
-                                        </form>
-                                        <form method="post" asp-action="RejectAppointment" asp-route-id="@appointment.Id" style="display: inline;">
-                                            <button type="submit" class="btn btn-danger btn-sm w-100">
-                                                <i class="fas fa-times"></i> Reddet
-                                            </button>
-                                        </form>
+                                    <div class="alert alert-warning" style="margin: 0; padding: 8px;">
+                                        <small><i class="fas fa-info-circle"></i> Eğitmen onayını bekleniyor...</small>
                                     </div>
                                 </div>
                             </div>
@@ -126,7 +109,7 @@
     <div class="card mb-4" style="border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
         <div class="card-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 15px 15px 0 0; border: none;">
             <h5 class="mb-0 text-white">
-                <i class="fas fa-check-circle"></i> Kabul Edilen (@acceptedAppointments.Count)
+                <i class="fas fa-check-circle"></i> Onaylı Randevular (@acceptedAppointments.Count)
             </h5>
         </div>
         <div class="card-body p-3">
@@ -134,7 +117,7 @@
             {
                 <div class="text-center py-5">
                     <i class="fas fa-inbox text-muted" style="font-size: 2rem;"></i>
-                    <p class="text-muted mt-3">Kabul edilen randevu yok</p>
+                    <p class="text-muted mt-3">Onaylı randevu yok</p>
                 </div>
             }
             else
@@ -145,16 +128,17 @@
                         <div class="col-md-6 mb-3">
                             <div class="card h-100" style="border-radius: 12px; border: 2px solid #28a745; transition: all 0.3s ease;">
                                 <div class="card-body">
-                                    <h6 class="card-title">
-                                        <i class="fas fa-user-circle"></i> @appointment.User?.UserName
+                                    <h6 class="card-title" style="color: #fff;">
+                                        <i class="fas fa-user-tie"></i> @appointment.Trainer?.Name
                                     </h6>
-                                    <p class="mb-2">
+                                    <small style="color: #aaa;"><i class="fas fa-building"></i> @appointment.Trainer?.Gym?.Name</small>
+                                    <p class="mb-2 mt-3" style="color: #ddd;">
                                         <strong>Tarih:</strong> @appointment.AppointmentDate.ToString("dd/MM/yyyy")
                                     </p>
-                                    <p class="mb-2">
+                                    <p class="mb-2" style="color: #ddd;">
                                         <strong>Saat:</strong> @appointment.ScheduleSlot?.Hour:00 - @((appointment.ScheduleSlot?.Hour ?? 0) + 1):00
                                     </p>
-                                    <p class="mb-3">
+                                    <p class="mb-3" style="color: #ddd;">
                                         <strong>Hizmetler:</strong>
                                         @if (appointment.ScheduleSlot?.ScheduleSlotServices?.Any() == true)
                                         {
@@ -165,11 +149,9 @@
                                             }
                                         }
                                     </p>
-                                    <form method="post" asp-action="CancelAppointment" asp-route-id="@appointment.Id" style="display: inline;">
-                                        <button type="submit" class="btn btn-warning btn-sm w-100">
-                                            <i class="fas fa-ban"></i> İptal Et
-                                        </button>
-                                    </form>
+                                    <div class="alert alert-success" style="margin: 0; padding: 8px;">
+                                        <small><i class="fas fa-check"></i> Randevu onaylandı. Tarihini not edin!</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -202,16 +184,17 @@
                         <div class="col-md-6 mb-3">
                             <div class="card h-100" style="border-radius: 12px; border: 2px solid #6f42c1; transition: all 0.3s ease;">
                                 <div class="card-body">
-                                    <h6 class="card-title">
-                                        <i class="fas fa-user-circle"></i> @appointment.User?.UserName
+                                    <h6 class="card-title" style="color: #fff;">
+                                        <i class="fas fa-user-tie"></i> @appointment.Trainer?.Name
                                     </h6>
-                                    <p class="mb-2">
+                                    <small style="color: #aaa;"><i class="fas fa-building"></i> @appointment.Trainer?.Gym?.Name</small>
+                                    <p class="mb-2 mt-3" style="color: #ddd;">
                                         <strong>Tarih:</strong> @appointment.AppointmentDate.ToString("dd/MM/yyyy")
                                     </p>
-                                    <p class="mb-2">
+                                    <p class="mb-2" style="color: #ddd;">
                                         <strong>Saat:</strong> @appointment.ScheduleSlot?.Hour:00 - @((appointment.ScheduleSlot?.Hour ?? 0) + 1):00
                                     </p>
-                                    <p class="mb-3">
+                                    <p class="mb-3" style="color: #ddd;">
                                         <strong>Hizmetler:</strong>
                                         @if (appointment.ScheduleSlot?.ScheduleSlotServices?.Any() == true)
                                         {
@@ -222,10 +205,8 @@
                                             }
                                         }
                                     </p>
-                                    <div class="d-grid gap-2">
-                                        <button type="button" class="btn btn-primary btn-sm w-100" onclick="openRatingDialog(@appointment.Id)">
-                                            <i class="fas fa-star"></i> Değerlendir
-                                        </button>
+                                    <div class="alert alert-info" style="margin: 0; padding: 8px;">
+                                        <small><i class="fas fa-star"></i> Ders tamamlandı. Puanınızı verdiniz mi?</small>
                                     </div>
                                 </div>
                             </div>
@@ -236,11 +217,11 @@
         </div>
     </div>
 
-    <!-- Rejected Appointments -->
+    <!-- Rejected/Cancelled Appointments -->
     <div class="card" style="border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
         <div class="card-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); border-radius: 15px 15px 0 0; border: none;">
             <h5 class="mb-0 text-white">
-                <i class="fas fa-times-circle"></i> Reddedilen (@rejectedAppointments.Count)
+                <i class="fas fa-times-circle"></i> Reddedilen/İptal (@rejectedAppointments.Count)
             </h5>
         </div>
         <div class="card-body p-3">
@@ -259,16 +240,17 @@
                         <div class="col-md-6 mb-3">
                             <div class="card h-100" style="border-radius: 12px; border: 2px solid #dc3545; transition: all 0.3s ease; opacity: 0.8;">
                                 <div class="card-body">
-                                    <h6 class="card-title">
-                                        <i class="fas fa-user-circle"></i> @appointment.User?.UserName
+                                    <h6 class="card-title" style="color: #fff;">
+                                        <i class="fas fa-user-tie"></i> @appointment.Trainer?.Name
                                     </h6>
-                                    <p class="mb-2">
+                                    <small style="color: #aaa;"><i class="fas fa-building"></i> @appointment.Trainer?.Gym?.Name</small>
+                                    <p class="mb-2 mt-3" style="color: #ddd;">
                                         <strong>Tarih:</strong> @appointment.AppointmentDate.ToString("dd/MM/yyyy")
                                     </p>
-                                    <p class="mb-2">
+                                    <p class="mb-2" style="color: #ddd;">
                                         <strong>Saat:</strong> @appointment.ScheduleSlot?.Hour:00 - @((appointment.ScheduleSlot?.Hour ?? 0) + 1):00
                                     </p>
-                                    <p>
+                                    <p class="mb-3" style="color: #ddd;">
                                         <strong>Hizmetler:</strong>
                                         @if (appointment.ScheduleSlot?.ScheduleSlotServices?.Any() == true)
                                         {
@@ -295,29 +277,8 @@
         box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
     }
 </style>
+    </div>
 
-<script>
-    async function openRatingDialog(appointmentId) {
-        window.DialogBox.show({
-            type: 'rating',
-            title: 'Randevuyu Değerlendir',
-            onSubmit: async function(ratings) {
-                try {
-                    const res = await fetch('/api/rating', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ appointmentId: appointmentId, trainerRating: ratings.trainer, gymRating: ratings.gym })
-                    });
-                    const data = await res.json();
-                    window.DialogBox.show({ type: 'informant', title: 'Teşekkürler', message: data.message || 'Puanınız kaydedildi.' });
-                } catch (err) {
-                    console.error('Error submitting rating', err);
-                    window.DialogBox.show({ type: 'error', title: 'Hata', message: 'Puan gönderilirken hata oluştu.' });
-                }
-            }
-        });
-    }
-</script>
     <!-- Calendar View -->
     <div id="calendarViewContainer" class="view-hidden">
         @await Html.PartialAsync("_WeeklySchedule", Model)

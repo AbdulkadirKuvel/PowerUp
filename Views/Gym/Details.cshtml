@@ -2,25 +2,100 @@
 
 @{
     ViewData["Title"] = "Spor Salonu Detayları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h2 class="card-title">@Model.Name</h2>
-                    <hr>
-                    <p><strong>Adres:</strong> @Model.Address</p>
-                    <p><strong>Aylık Fiyat:</strong> ₺@Model.MonthlyPrice</p>
-                    <p><strong>Yıllık Fiyat:</strong> ₺@Model.AnnuallyPrice</p>
+<!-- Gym styles moved to theme.css -->
 
-                    <div class="mt-4">
-                        <a class="btn btn-success" asp-action="Subscribe" asp-route-id="@Model.Id">Abone Ol</a>
-                        <a class="btn btn-secondary" asp-action="List">Geri Dön</a>
-                    </div>
+
+
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="container mt-4 mb-5">
+
+    <div data-aos="fade-right">
+        <a asp-action="List" class="btn-back-link">
+            <i class="fas fa-arrow-left me-2"></i> Salonlara Dön
+        </a>
+    </div>
+
+    <div class="gym-hero" data-aos="zoom-in">
+        <img src="https://images.unsplash.com/photo-1570829460005-c840387bb1ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+            alt="Gym Hero">
+        <div class="gym-hero-content">
+            <h1 class="gym-title">@Model.Name</h1>
+            <div class="gym-address">
+                <i class="fas fa-map-marker-alt"></i> @Model.Address
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7 mb-4" data-aos="fade-up">
+            <div class="content-card h-100">
+                <h3 class="text-white mb-4">Salon Hakkında</h3>
+                <p class="text-muted">
+                    PowerUp ailesinin bir parçası olan <strong>@Model.Name</strong>, son teknoloji ekipmanlar ve uzman
+                    kadrosuyla hizmetinizdedir.
+                    Hedeflerinize ulaşmak için ihtiyacınız olan her şey burada.
+                </p>
+                <div class="mt-4">
+                    <h5 class="text-white mb-3"><i class="fas fa-check-circle me-2 text-danger"></i>Öne Çıkanlar</h5>
+                    <ul class="list-unstyled text-muted">
+                        @if (Model.Features != null && Model.Features.Any())
+                        {
+                            @foreach (var feature in Model.Features)
+                            {
+                                <li class="mb-2 d-flex align-items-center">
+                                    <i
+                                        class="@(string.IsNullOrEmpty(feature.IconClass) ? "fas fa-check-circle" : feature.IconClass) me-2 text-danger"></i>
+                                    @feature.Name
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="mb-2 text-muted fst-italic">
+                                <i class="fas fa-info-circle me-2"></i>Bu salon için henüz özellik belirtilmemiş.
+                            </li>
+                        }
+                    </ul>
                 </div>
+            </div>
+        </div>
+
+        <div class="col-md-5" data-aos="fade-up" data-aos-delay="200">
+            <div class="content-card">
+                <h3 class="text-white mb-4 text-center">Üyelik Seçenekleri</h3>
+
+                <div class="pricing-card">
+                    <div class="pricing-period">Aylık Üyelik</div>
+                    <div class="pricing-price">
+                        ₺@Model.MonthlyPrice <small>/ay</small>
+                    </div>
+                    <p class="text-muted small mb-0">Esnek ödeme planı.</p>
+                </div>
+
+                <div class="pricing-card pricing-highlight">
+                    <div class="pricing-period pricing-highlight">Yıllık Üyelik</div>
+                    <div class="pricing-price">
+                        ₺@Model.AnnuallyPrice <small>/yıl</small>
+                    </div>
+                    <p class="text-muted small mb-0">En avantajlı seçenek.</p>
+                </div>
+
+                <a asp-action="Subscribe" asp-route-id="@Model.Id" class="btn-subscribe">
+                    <i class="fas fa-bolt me-2"></i> Hemen Abone Ol
+                </a>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+}

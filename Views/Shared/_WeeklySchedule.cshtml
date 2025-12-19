@@ -1,0 +1,177 @@
+@model List<Appointment>
+
+@{
+    var startOfWeek = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek + 1);
+    var daysOfWeek = new[] { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
+    var timeSlots = new[] { "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00" };
+}
+
+<style>
+    .weekly-calendar {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        overflow: auto;
+        margin-top: 20px;
+    }
+    
+    .schedule-grid {
+        display: grid;
+        grid-template-columns: 80px repeat(7, 1fr);
+        gap: 1px;
+        padding: 10px;
+        background: #333;
+    }
+    
+    .time-header {
+        background: #1a1a1a;
+        padding: 8px;
+        font-weight: bold;
+        color: #ddd;
+        text-align: center;
+        font-size: 0.85rem;
+    }
+    
+    .day-header {
+        background: linear-gradient(135deg, #e31c25 0%, #b01018 100%);
+        color: white;
+        padding: 10px 8px;
+        text-align: center;
+        font-weight: bold;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .day-date {
+        font-size: 0.8rem;
+        color: #aaa;
+    }
+    
+    .time-slot {
+        background: #1a1a1a;
+        padding: 8px;
+        text-align: center;
+        color: #ddd;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .appointment-slot {
+        background: #2a2a2a;
+        border: 1px solid #444;
+        padding: 6px;
+        text-align: center;
+        min-height: 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .appointment-slot:hover {
+        background: #333;
+        border-color: #666;
+        box-shadow: inset 0 0 5px rgba(227, 28, 37, 0.3);
+    }
+    
+    .appointment-name {
+        color: #fff;
+        font-weight: bold;
+        margin-bottom: 2px;
+    }
+    
+    .appointment-status-awaiting {
+        background: #ff9800;
+        color: white;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.75rem;
+    }
+    
+    .appointment-status-accepted {
+        background: #28a745;
+        color: white;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.75rem;
+    }
+    
+    .appointment-status-completed {
+        background: #9c27b0;
+        color: white;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.75rem;
+    }
+    
+    .empty-slot {
+        background: #111;
+        border: 1px dashed #444;
+    }
+
+    .scroll-container {
+        overflow-x: auto;
+        padding: 15px;
+    }
+</style>
+
+<div class="scroll-container">
+    <div class="weekly-calendar">
+        <div class="schedule-grid">
+            <!-- Empty corner for time labels -->
+            <div class="time-header"></div>
+            
+            <!-- Day headers -->
+            @for (int i = 0; i < 7; i++)
+            {
+                var date = startOfWeek.AddDays(i);
+                <div class="day-header">
+                    <div>@daysOfWeek[i]</div>
+                    <div class="day-date">@date.ToString("dd/MM")</div>
+                </div>
+            }
+            
+            <!-- Time slots -->
+            @foreach (var timeSlot in timeSlots)
+            {
+                <div class="time-slot">@timeSlot</div>
+                
+                @for (int day = 0; day < 7; day++)
+                {
+                    var date = startOfWeek.AddDays(day);
+                    var appointments = Model.Where(a => 
+                        a.AppointmentDate.Date == date.Date && 
+                        a.AppointmentTime.ToString(@"hh\:mm") == timeSlot &&
+                        (a.Status == 0 || a.Status == 1 || a.Status == 3)
+                    ).ToList();
+                    
+                    if (appointments.Count > 0)
+                    {
+                        var apt = appointments.First();
+                        var statusClass = apt.Status == 0 ? "appointment-status-awaiting" : 
+                                        apt.Status == 1 ? "appointment-status-accepted" : 
+                                        "appointment-status-completed";
+                        var statusText = apt.Status == 0 ? "Bkl." : 
+                                       apt.Status == 1 ? "Onaylı" : 
+                                       "Tamamlandı";
+                        
+                        <!-- Check if it's for trainer view or user view -->
+                        var displayName = Model.Count > 0 && Model.First().User != null ? apt.User?.UserName : apt.Trainer?.Name;
+                        
+                        <div class="appointment-slot" title="@displayName">
+                            <div class="appointment-name">@displayName?.Substring(0, Math.Min(10, displayName.Length))</div>
+                            <div class="@statusClass">@statusText</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="appointment-slot empty-slot"></div>
+                    }
+                }
+            }
+        </div>
+    </div>
+</div>

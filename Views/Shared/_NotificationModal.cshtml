@@ -36,18 +36,51 @@
                     subject: notif.subject,
                     description: notif.description + ' (' + formatTime(notif.createdAt) + ')',
                     notificationId: notif.id,
+                    actionLabel: notif.actionLabel,
+                    actionType: notif.actionType,
+                    actionPayload: notif.actionPayload,
                     action: async function() {
                         try {
-                            // Mark as read
+                            // Default dismiss behavior
                             await fetch(`/api/notification/${this.notificationId}/mark-as-read`, { method: 'POST' });
-                            // Delete the notification
                             await fetch(`/api/notification/${this.notificationId}`, { method: 'DELETE' });
-                            // Update count
                             await updateNotificationCount();
-                            // Reload notifications
                             await loadAndDisplayNotifications();
                         } catch (error) {
                             console.error('Error dismissing notification:', error);
+                        }
+                    },
+                    performAction: async function() {
+                        try {
+                            // If actionType is rating, open rating dialog
+                            if (this.actionType === 'rating') {
+                                const appointmentId = parseInt(this.actionPayload);
+                                window.DialogBox.show({
+                                    type: 'rating',
+                                    title: 'Randevuyu Değerlendir',
+                                    onSubmit: async function(ratings) {
+                                        try {
+                                            const res = await fetch('/api/rating', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ appointmentId: appointmentId, trainerRating: ratings.trainer, gymRating: ratings.gym })
+                                            });
+                                            const data = await res.json();
+                                            // Mark as read and delete after rating
+                                            await fetch(`/api/notification/${this.notificationId}/mark-as-read`, { method: 'POST' });
+                                            await fetch(`/api/notification/${this.notificationId}`, { method: 'DELETE' });
+                                            await updateNotificationCount();
+                                            await loadAndDisplayNotifications();
+                                            window.DialogBox.show({ type: 'informant', title: 'Teşekkürler', message: data.message || 'Puanınız kaydedildi.' });
+                                        } catch (err) {
+                                            console.error('Error submitting rating', err);
+                                            window.DialogBox.show({ type: 'error', title: 'Hata', message: 'Puan gönderilirken hata oluştu.' });
+                                        }
+                                    }
+                                });
+                            }
+                        } catch (err) {
+                            console.error('Error performing notification action', err);
                         }
                     }
                 }));

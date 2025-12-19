@@ -2,34 +2,154 @@
     ViewData["Title"] = "Chatbot";
 }
 
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">PowerUp Chatbot</h5>
-                </div>
-                <div class="card-body" style="height: 500px; overflow-y: auto; background-color: #f8f9fa;">
-                    <div class="mb-3 p-3 bg-white rounded border">
-                        <p class="mb-0"><strong>Bot:</strong> Merhaba! Size nasıl yardımcı olabilirim?</p>
+        <div class="col-lg-10">
+            <div class="card border-0 chat-card">
+                
+                <div class="card-header py-3 chat-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="fas fa-robot fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0 fw-bold">PowerUp Asistanı</h5>
+                                <small class="text-white-50" style="font-size: 0.85rem;">AI destekli yardımcı chatbot</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-success bg-opacity-75 rounded-pill px-3"><i class="fas fa-circle fa-xs me-1"></i>Çevrimiçi</span>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <form method="post" asp-action="Index" class="input-group">
-                        <input type="text" class="form-control" id="message" name="message" placeholder="Mesajınızı girin..." autocomplete="off">
-                        <button class="btn btn-primary" type="submit">Gönder</button>
+
+                <div class="card-body chat-container" id="chatContainer">
+                    <div class="message bot">
+                        <div class="d-flex justify-content-start">
+                            <div class="p-3 bg-white rounded shadow-sm message-content message-content bot">
+                                <p class="mb-0">
+                                    <i class="fas fa-robot text-primary me-2"></i>
+                                    <strong>Bot:</strong> Merhaba! Size antrenör bulma, randevu alma veya spor salonu hakkında nasıl yardımcı olabilirim?
+                                </p>
+                                <small class="text-muted d-block mt-1 text-end" style="font-size: 0.7rem;">Şimdi</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white p-3 chat-footer">
+                    <form id="chatForm" class="input-group">
+                        <input type="text" class="form-control border-end-0 chat-input" id="messageInput" placeholder="Mesajınızı buraya yazın..." autocomplete="off">
+                        <button class="btn btn-primary chat-send" type="submit">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </form>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h6 class="text-muted mb-3 ps-2"><i class="far fa-lightbulb text-warning me-2"></i>Sık Sorulanlar:</h6>
+                <div class="row g-2">
+                    <div class="col-md-3 col-6">
+                        <button class="btn btn-outline-primary btn-sm w-100 py-2 rounded-pill" onclick="sendQuickMessage('Antrenör nasıl bulurum?')">
+                            Antrenör Bul
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <button class="btn btn-outline-primary btn-sm w-100 py-2 rounded-pill" onclick="sendQuickMessage('Randevu almak istiyorum')">
+                            Randevu Al
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <button class="btn btn-outline-primary btn-sm w-100 py-2 rounded-pill" onclick="sendQuickMessage('Hangi hizmetler var?')">
+                            Hizmetler
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <button class="btn btn-outline-primary btn-sm w-100 py-2 rounded-pill" onclick="sendQuickMessage('Spor salonu nerede?')">
+                            Konum
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .card-body {
-        word-wrap: break-word;
+
+
+<script>
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const chatContainer = document.getElementById('chatContainer');
+
+    function addMessageToChat(message, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+        
+        const flexClass = isUser ? 'justify-content-end' : 'justify-content-start';
+        const bgClass = isUser ? 'bg-primary text-white' : 'bg-white text-dark shadow-sm';
+        const radiusClass = isUser ? 'border-radius: 15px; border-bottom-right-radius: 5px;' : 'border-radius: 15px; border-bottom-left-radius: 5px;';
+        
+        let contentHtml = '';
+        if (isUser) {
+            contentHtml = `<strong>Siz:</strong> ${message}`;
+        } else {
+            contentHtml = `<i class="fas fa-robot text-primary me-2"></i><strong>Bot:</strong> ${message}`;
+        }
+
+        messageDiv.innerHTML = `
+            <div class="d-flex ${flexClass}">
+                <div class="p-3 ${bgClass}" style="max-width: 75%; ${radiusClass}">
+                    <p class="mb-0">${contentHtml}</p>
+                    <small class="${isUser ? 'text-white-50' : 'text-muted'} d-block mt-1 text-end" style="font-size: 0.7rem;">Az önce</small>
+                </div>
+            </div>
+        `;
+        
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
     }
-    .card-body p {
-        margin-bottom: 0;
+
+    function sendQuickMessage(message) {
+        messageInput.value = message;
+        sendMessage();
     }
-</style>
+
+    async function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        addMessageToChat(message, true);
+        messageInput.value = '';
+        
+        chatForm.classList.add('chat-input-loading');
+
+        try {
+            const response = await fetch('@Url.Action("SendMessage", "ChatBot")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'message=' + encodeURIComponent(message)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    addMessageToChat(data.message, false);
+                }
+            } else {
+                addMessageToChat('Bir hata oluştu.', false);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            addMessageToChat('Bağlantı hatası.', false);
+        } finally {
+            chatForm.classList.remove('chat-input-loading');
+            messageInput.focus();
+        }
+    }
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendMessage();
+    });
+</script>

@@ -2,53 +2,236 @@
 
 @{
     ViewData["Title"] = "Antrenörler";
+    // Layout dosyanızın yolu
+    Layout = "~/Views/Shared/_Layout.cshtml"; 
 }
 
-<div class="container mt-5">
-    <div class="row mb-4">
-        <div class="col">
-            <h1>@ViewData["Title"]</h1>
+<style>
+    :root {
+        --primary-color: #e31c25;
+        --dark-bg: #111111;
+        --card-bg: #1a1a1a;
+        --text-color: #ffffff;
+        --btn-gradient: linear-gradient(135deg, #e31c25 0%, #b01018 100%);
+    }
+
+    body {
+        background-color: var(--dark-bg);
+        color: var(--text-color);
+    }
+
+    /* Başlık Stili */
+    .page-header {
+        position: relative;
+        margin-bottom: 50px;
+        padding-top: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: white;
+    }
+
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background-color: var(--primary-color);
+        margin-top: 10px;
+        border-radius: 2px;
+    }
+
+    /* Kart Tasarımı */
+    .trainer-card {
+        background-color: var(--card-bg);
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .trainer-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(227, 28, 37, 0.15);
+    }
+
+    /* Görsel Alanı (Modelde resim yoksa placeholder mantığı) */
+    .card-img-top-wrapper {
+        height: 220px;
+        overflow: hidden;
+        position: relative;
+        background: #252525;
+    }
+
+    .card-img-top-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        opacity: 0.8;
+    }
+
+    .trainer-card:hover .card-img-top-wrapper img {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    .card-body {
+        padding: 20px;
+        flex-grow: 1;
+    }
+
+    .card-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: white;
+    }
+
+    .info-item {
+        font-size: 0.95rem;
+        color: #aaaaaa;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .info-item i {
+        width: 25px;
+        color: var(--primary-color);
+    }
+
+    /* Kart Alt Butonlar */
+    .card-footer-custom {
+        padding: 15px 20px;
+        background: rgba(0,0,0,0.2);
+        border-top: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        justify-content: space-between;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    /* Butonlar */
+    .btn-add-new {
+        background: var(--btn-gradient);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 50px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(227, 28, 37, 0.4);
+        transition: transform 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-add-new:hover {
+        transform: scale(1.05);
+        color: white;
+    }
+
+    .btn-action {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 8px;
+        text-transform: uppercase;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-action-info { background: transparent; border: 1px solid #0dcaf0; color: #0dcaf0; }
+    .btn-action-info:hover { background: #0dcaf0; color: #000; }
+
+    .btn-action-edit { background: transparent; border: 1px solid #ffc107; color: #ffc107; }
+    .btn-action-edit:hover { background: #ffc107; color: #000; }
+
+    .btn-action-delete { background: transparent; border: 1px solid #dc3545; color: #dc3545; }
+    .btn-action-delete:hover { background: #dc3545; color: white; }
+
+</style>
+
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="container mt-4 mb-5">
+    
+    <div class="row align-items-center page-header" data-aos="fade-down">
+        <div class="col-md-8">
+            <h1 class="section-title">@ViewData["Title"]</h1>
+            <p class="text-muted">Uzman kadromuzla hedeflerine ulaş.</p>
         </div>
         @if (User.IsInRole("Admin"))
         {
-            <div class="col-auto">
-                <a class="btn btn-primary" asp-action="Create">+ Antrenör Ekle</a>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a class="btn-add-new" asp-action="Create">
+                    <i class="fas fa-plus me-2"></i>Antrenör Ekle
+                </a>
             </div>
         }
     </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="alert alert-success alert-dismissible fade show bg-dark text-white border-success" role="alert" data-aos="fade-in">
+            <i class="fas fa-check-circle me-2 text-success"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
     @if (Model == null || Model.Count == 0)
     {
-        <div class="alert alert-info">Henüz antrenör bulunmamaktadır.</div>
+        <div class="alert alert-info bg-dark text-white border-info" data-aos="fade-up">
+            <i class="fas fa-info-circle me-2"></i> Henüz antrenör bulunmamaktadır.
+        </div>
     }
     else
     {
         <div class="row">
             @foreach (var trainer in Model)
             {
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100">
+                <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up" data-aos-duration="800">
+                    <div class="trainer-card">
+                        <div class="card-img-top-wrapper">
+                            <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Antrenör">
+                        </div>
+                        
                         <div class="card-body">
                             <h5 class="card-title">@trainer.Name</h5>
-                            <p class="card-text">
-                                <strong>Telefon:</strong> @trainer.PhoneNumber<br>
-                                <strong>Hizmet Sayısı:</strong> @(trainer.TrainerServices?.Count ?? 0)
-                            </p>
+                            <div class="info-item">
+                                <i class="fas fa-building"></i>
+                                <span>@trainer.GymName</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-dumbbell"></i>
+                                <span>Hizmet Sayısı: <span class="text-white fw-bold">@(trainer.TrainerServices?.Count ?? 0)</span></span>
+                            </div>
                         </div>
-                        <div class="card-footer bg-white">
-                            <a class="btn btn-info btn-sm" asp-action="Detail" asp-route-id="@trainer.Id">Detayları Gör</a>
-                            @if (User.IsInRole("Admin"))
+                        
+                        <div class="card-footer-custom">
+                            <a class="btn btn-action btn-action-info" asp-action="Details" asp-route-id="@trainer.Id">
+                                <i class="fas fa-eye"></i> Detay
+                            </a>
+                            
+                            @if (User.IsInRole(role: "Admin"))
                             {
-                                <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@trainer.Id">Düzenle</a>
-                                <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@trainer.Id" onclick="return confirm('Silmek istediğinizden emin misiniz?')">Sil</a>
+                                <div>
+                                    <a class="btn btn-action btn-action-edit" asp-action="Edit" asp-route-id="@trainer.Id">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a class="btn btn-action btn-action-delete" href="#" onclick="showTrainerDelete(@trainer.Id, '@trainer.Name'); return false;">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
                             }
                         </div>
                     </div>
@@ -57,3 +240,97 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+
+    <script>
+        async function showTrainerDelete(trainerId, trainerName) {
+            try {
+                const resp = await fetch(`/api/trainer/${trainerId}/appointments-summary`);
+                if (!resp.ok) throw new Error('Özet alınamadı');
+                const data = await resp.json();
+
+                const accepted = data.accepted || [];
+                const awaiting = data.awaiting || [];
+
+                // Prepare items
+                const items = [];
+                if (accepted.length > 0) {
+                    accepted.forEach(a => items.push({ subject: `Kabul Edildi - ${a.userName}`, description: `${a.date} ${a.time} - ${a.service || ''}` }));
+                    window.DialogBox.show({
+                        type: 'list',
+                        title: 'Silme Engellendi',
+                        message: 'Kabul edilmiş randevular bulunduğu için antrenör silinemez.',
+                        items: items,
+                        buttons: [
+                            { text: 'Randevulara Git', action: () => { window.location.href = '/Admin/AllAppointments'; }, isPrimary: true },
+                            { text: 'Kapat', action: () => window.DialogBox.close(), isPrimary: false }
+                        ]
+                    });
+                    return;
+                }
+
+                if (awaiting.length > 0) {
+                    awaiting.forEach(a => items.push({ subject: `Beklemede - ${a.userName}`, description: `${a.date} ${a.time} - ${a.service || ''}` }));
+                    window.DialogBox.show({
+                        type: 'list',
+                        title: `Antrenör: ${trainerName}`,
+                        message: 'Bekleyen randevular listelenmiştir. Devam edip antrenörü silmek için onay kutusunu işaretleyip "Evet" e tıklayın. Bekleyen randevular reddedilecektir.',
+                        items: items,
+                        checkbox: { label: 'Evet, silmek istediğimi onaylıyorum' },
+                        buttons: [
+                            { text: 'İptal', action: () => window.DialogBox.close(), isPrimary: false },
+                            { text: 'Evet', action: async () => {
+                                try {
+                                    const deleteResp = await fetch(`/api/trainer/${trainerId}/delete`, { method: 'POST' });
+                                    const delData = await deleteResp.json();
+                                    if (deleteResp.ok && delData.success) {
+                                        window.DialogBox.show({ type: 'informant', title: 'Tamam', message: delData.message });
+                                        setTimeout(() => location.reload(), 1000);
+                                    } else {
+                                        window.DialogBox.show({ type: 'error', title: 'Hata', message: delData.message || 'Silme başarısız oldu.' });
+                                    }
+                                } catch (err) {
+                                    window.DialogBox.show({ type: 'error', title: 'Hata', message: err.message });
+                                }
+                            }, isPrimary: true }
+                        ]
+                    });
+                    return;
+                }
+
+                // No appointments - simple confirm with checkbox
+                window.DialogBox.show({
+                    type: 'warning',
+                    title: `Antrenörü Sil: ${trainerName}`,
+                    message: 'Bu işlem geri alınamaz. Onay kutusunu işaretleyip "Evet" e tıklayın.',
+                    checkbox: { label: 'Evet, silmek istediğimi onaylıyorum' },
+                    buttons: [
+                        { text: 'İptal', action: () => window.DialogBox.close(), isPrimary: false },
+                        { text: 'Evet', action: async () => {
+                            try {
+                                const deleteResp = await fetch(`/api/trainer/${trainerId}/delete`, { method: 'POST' });
+                                const delData = await deleteResp.json();
+                                if (deleteResp.ok && delData.success) {
+                                    window.DialogBox.show({ type: 'informant', title: 'Tamam', message: delData.message });
+                                    setTimeout(() => location.reload(), 1000);
+                                } else {
+                                    window.DialogBox.show({ type: 'error', title: 'Hata', message: delData.message || 'Silme başarısız oldu.' });
+                                }
+                            } catch (err) {
+                                window.DialogBox.show({ type: 'error', title: 'Hata', message: err.message });
+                            }
+                        }, isPrimary: true }
+                    ]
+                });
+
+            } catch (error) {
+                window.DialogBox.show({ type: 'error', title: 'Hata', message: error.message || 'Beklenmeyen bir hata oluştu.' });
+            }
+        }
+    </script>
+}

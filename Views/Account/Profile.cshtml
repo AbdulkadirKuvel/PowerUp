@@ -6,210 +6,166 @@
 
 @{
     ViewData["Title"] = "Profilim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     var user = await UserManager.GetUserAsync(User);
     var trainer = ViewBag.Trainer as Trainer;
-    var isTrainer = ViewBag.IsTrainer;
+    var isTrainer = ViewBag.IsTrainer as bool? ?? false;
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <h1 class="mb-4">Hoşgeldiniz, @user?.UserName! @(isTrainer ? "👨‍🏫" : "")</h1>
+
+
+<div class="profile-header">
+    <div class="container d-flex align-items-center">
+        <div class="profile-avatar me-4">
+            <i class="fas fa-user"></i>
+        </div>
+        <div>
+            <h1 class="mb-1 text-white">@user?.UserName @(isTrainer? Html.Raw("<i class='fas fa-check-circle             text-primary ms-2' title='Eğitmen Hesabı'></i>") : "")</h1>
+            <p class="text-muted mb-0">
+                <i class="fas fa-envelope me-2"></i>@user?.Email
+                <span class="mx-2">|</span>
+                <i class="fas fa-clock me-2"></i>Üyelik: @user?.SecurityStamp?.Substring(0, 10)
+            </p>
+        </div>
+        <div class="ms-auto">
+            <a href="@Url.Action("Logout", "Account")" class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap
+            </a>
         </div>
     </div>
+</div>
 
-    @if ((isTrainer ?? false) && trainer != null)
+<div class="container mb-5">
+
+    @if (isTrainer && trainer != null)
     {
-        <!-- Trainer Sections -->
-        <div class="row">
-            <!-- Haftalık Programım -->
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">📅 Haftalık Programım</h5>
-                        <a href="@Url.Action("Create", "Schedule")" class="btn btn-sm btn-light">+ Slot Ekle</a>
+        <h4 class="text-white mb-4 border-start border-3 border-danger ps-3">Eğitmen Kontrol Paneli</h4>
+        <div class="row g-4 mb-5">
+            <div class="col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="card-header-custom">
+                        <h5>Program Yönetimi</h5>
+                        <i class="fas fa-calendar-alt card-icon"></i>
                     </div>
-                    <div class="card-body">
-                        @if (trainer?.ScheduleSlots != null && trainer.ScheduleSlots.Any())
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Gün</th>
-                                            <th>Saat</th>
-                                            <th>Spor Merkezi</th>
-                                            <th>Kapasite</th>
-                                            <th>İşlem</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var slot in trainer.ScheduleSlots.OrderBy(s => s.DayOfWeek).ThenBy(s => s.Hour))
-                                        {
-                                            string[] days = { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
-                                            <tr>
-                                                <td>@days[slot.DayOfWeek]</td>
-                                                <td>@slot.Hour:00</td>
-                                                <td>@(slot.Gym?.Name ?? "-")</td>
-                                                <td>
-                                                    <span class="badge bg-secondary">@(slot.IsWeekly ? "Haftalık" : "Günlük")</span>
-                                                </td>
-                                                <td>
-                                                    <a href="@Url.Action("Edit", "Schedule", new { id = slot.Id })" class="btn btn-sm btn-warning">Düzenle</a>
-                                                    <a href="@Url.Action("Delete", "Schedule", new { id = slot.Id })" class="btn btn-sm btn-danger" onclick="return confirm('Emin misiniz?')">Sil</a>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                        else
-                        {
-                            <p class="text-muted">Henüz uygun zaman aralığı belirlenmemiştir.</p>
-                        }
-                    </div>
-                    <div class="card-footer bg-light">
-                        <a href="@Url.Action("MySchedule", "Schedule")" class="btn btn-sm btn-info">Tüm Programı Görüntüle</a>
+                    <div class="card-body-custom">
+                        <p class="text-muted">Müsaitlik durumunuzu ve çalışma saatlerinizi buradan düzenleyin.</p>
+                        <a href="@Url.Action("MySchedule", "Schedule")" class="action-btn">
+                            Programı Düzenle
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Hizmetlerim -->
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">🔧 Hizmetlerim</h5>
-                        @{
-                            var allServices = ViewBag.AllServices as List<Service> ?? new List<Service>();
-                            var assignedIds = ViewBag.AssignedServiceIds as List<int> ?? new List<int>();
-                        }
-                        @if (allServices.Count > assignedIds.Count)
-                        {
-                            <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#addServiceModal">+ Hizmet Ekle</button>
-                        }
+            <div class="col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="card-header-custom">
+                        <h5>Uzmanlık Alanlarım</h5>
+                        <i class="fas fa-dumbbell card-icon"></i>
                     </div>
-                    <div class="card-body">
-                        @if (trainer?.TrainerServices != null && trainer.TrainerServices.Any())
-                        {
-                            <div class="list-group list-group-flush">
-                                @foreach (var trainerService in trainer.TrainerServices)
-                                {
-                                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-0">@trainerService.Service?.Name</h6>
-                                        </div>
-                                        <a href="@Url.Action("RemoveService", "Trainer", new { id = trainer.Id, serviceId = trainerService.ServiceId })" 
-                                           class="btn btn-sm btn-danger" 
-                                           onclick="return confirm('Bu hizmeti kaldırmak istediğinizden emin misiniz?')">Kaldır</a>
-                                    </div>
-                                }
+                    <div class="card-body-custom">
+                        <p class="text-muted">Verdiğiniz dersleri ve hizmetleri yönetin.</p>
+                        <a href="@Url.Action("MyServices", "Trainer")" class="action-btn">
+                            Hizmetleri Yönet
+                        </a>
+                        <button class="btn btn-link text-white mt-2" data-bs-toggle="modal"
+                            data-bs-target="#addServiceModal">
+                            <small>+ Hızlı Ekle</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="card-header-custom">
+                        <h5>Gelen Randevular</h5>
+                        <i class="fas fa-clipboard-list card-icon"></i>
+                    </div>
+                    <div class="card-body-custom">
+                        <p class="text-muted">Öğrencilerinizin randevu taleplerini inceleyin.</p>
+                        <a href="@Url.Action("Appointments", "Trainer")" class="action-btn">
+                            Tümünü Gör
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-header border-secondary text-white">
+                        <i class="fas fa-history me-2 text-danger"></i> Bugün Reddedilen Randevular
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="rejectedAppointmentsContainer" class="list-group list-group-flush list-group-dark">
+                            <div class="text-center py-4 text-muted">
+                                <div class="spinner-border text-danger spinner-border-sm" role="status"></div> Yükleniyor...
                             </div>
-                        }
-                        else
-                        {
-                            <p class="text-muted">Henüz hiçbir hizmet eklenmemiştir.</p>
-                        }
-                    </div>
-                    <div class="card-footer bg-light">
-                        <a href="@Url.Action("MyServices", "Trainer")" class="btn btn-sm btn-warning">Tüm Hizmetleri Yönet</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     }
 
-    <div class="row">
-        <!-- Randevularım (for all users) -->
-        @if (!isTrainer)
-        {
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">📅 Randevularım</h5>
+    @if (!isTrainer)
+    {
+        <h4 class="text-white mb-4 border-start border-3 border-danger ps-3">Üyelik Bilgilerim</h4>
+        <div class="row g-4">
+
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header-custom">
+                        <h5>Antrenman Randevularım</h5>
+                        <i class="fas fa-calendar-check card-icon"></i>
                     </div>
-                    <div class="card-body">
-                        <p class="text-muted">Rezerve ettiğiniz antrenör randevuları burada görüntülenecektir.</p>
-                        <div class="list-group list-group-flush">
-                            <!-- Randevular dinamik olarak yüklenecek -->
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">Antrenör Adı</h6>
-                                    <small>2025-12-10</small>
-                                </div>
-                                <p class="mb-1">Saat: 10:00</p>
-                            </a>
+                    <div class="card-body-custom">
+                        <p class="text-muted">Eğitmenlerle planladığınız derslerinizi buradan takip edin.</p>
+                        <a href="@Url.Action("Appointments", "Trainer")" class="action-btn">
+                            Randevularıma Git
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header-custom">
+                        <h5>Spor Salonu Üyeliği</h5>
+                        <i class="fas fa-building card-icon"></i>
+                    </div>
+                    <div class="p-3">
+                        <div class="list-group list-group-dark">
+                            <div class="list-group-item">
+                                <h6 class="mb-1 text-white">Mevcut olarak abonelik yok.</h6>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-footer bg-light">
-                        <a href="#" class="btn btn-sm btn-primary">Yeni Randevu Al</a>
+                    <div class="text-center pb-4">
+                        <a href="@Url.Action("List", "Gym")" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-plus me-1"></i> Yeni Abonelik
+                        </a>
                     </div>
                 </div>
             </div>
-        }
 
-        <!-- Aboneliklerim (for all users) -->
-        @if (!isTrainer)
-        {
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">💪 Spor Salonu Aboneliklerim</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted">Abone olduğunuz spor salonları burada görüntülenecektir.</p>
-                        <div class="list-group list-group-flush">
-                            <!-- Abonelikler dinamik olarak yüklenecek -->
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">Spor Salonu Adı</h6>
-                                    <span class="badge bg-success rounded-pill">Aktif</span>
-                                </div>
-                                <p class="mb-1">Başlangıç: 2025-01-01 | Bitiş: 2025-12-31</p>
-                                <small>Paket: Aylık</small>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-light">
-                        <a href="@Url.Action("List", "Gym")" class="btn btn-sm btn-success">Yeni Abone Ol</a>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">⚙️ Profil Ayarları</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Kullanıcı Adı:</strong> @user?.UserName</p>
-                    <p><strong>Email:</strong> @user?.Email</p>
-                    <p><strong>Kayıt Tarihi:</strong> @user?.SecurityStamp?.Substring(0, 10)</p>
-                </div>
-                <div class="card-footer bg-light">
-                    <a href="@Url.Action("Logout", "Account")" class="btn btn-warning">Çıkış Yap</a>
-                </div>
-            </div>
         </div>
-    </div>
+    }
 </div>
 
-<!-- Add Service Modal -->
-@if ((isTrainer ?? false) && trainer != null)
+@if ((isTrainer) && trainer != null)
 {
     var allServices = ViewBag.AllServices as List<Service> ?? new List<Service>();
     var assignedServiceIds = ViewBag.AssignedServiceIds as List<int> ?? new List<int>();
     var availableServices = allServices.Where(s => !assignedServiceIds.Contains(s.Id)).ToList();
 
     <div class="modal fade" id="addServiceModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Hizmet Ekle</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-dark">
+                <div class="modal-header modal-header-dark">
+                    <h5 class="modal-title"><i class="fas fa-plus-circle text-danger me-2"></i>Hizmet Ekle</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     @if (availableServices.Any())
@@ -217,23 +173,24 @@
                         <form id="addServiceForm" method="post" action="@Url.Action("AddService", "Trainer")">
                             <input type="hidden" name="id" value="@trainer?.Id" />
                             <div class="mb-3">
-                                <label for="serviceSelect" class="form-label">Hizmet Seçin:</label>
-                                <select class="form-select" id="serviceSelect" name="serviceId" required>
-                                    <option value="">-- Hizmet Seçin --</option>
+                                <label for="serviceSelect" class="form-label text-muted">Hizmet Seçimi</label>
+                                <select class="form-select form-control-dark" id="serviceSelect" name="serviceId" required>
+                                    <option value="">-- Listeden Seçiniz --</option>
                                     @foreach (var service in availableServices)
                                     {
                                         <option value="@service.Id">@service.Name</option>
                                     }
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <button type="submit" class="btn btn-primary w-100">Hizmeti Ekle</button>
-                            </div>
+                            <button type="submit" class="btn btn-danger w-100">Kaydet ve Ekle</button>
                         </form>
                     }
                     else
                     {
-                        <p class="text-muted text-center">Tüm hizmetler zaten eklenmiştir. 🎉</p>
+                        <div class="text-center py-3">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <p>Harika! Mevcut tüm hizmetleri zaten profilinize eklediniz.</p>
+                        </div>
                     }
                 </div>
             </div>
@@ -241,25 +198,50 @@
     </div>
 }
 
-<style>
-    .card {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: transform 0.2s;
-    }
+@section Scripts {
+    <script>
+        // Rejected appointments loader styled for Dark Theme
+        async function loadRejectedAppointments() {
+            try {
+                const container = document.getElementById('rejectedAppointmentsContainer');
+                // Simüle edilmiş bir hata yönetimi veya boş durum için:
+                // Gerçek API çağrısını burada tutuyoruz
+                const response = await fetch('/api/appointment/rejected-today');
 
-    .card:hover {
-        transform: translateY(-5px);
-    }
+                if (response.ok) {
+                    const rejectedAppointments = await response.json();
 
-    .list-group-item {
-        border-left: 4px solid transparent;
-    }
+                    if (rejectedAppointments.length === 0) {
+                        container.innerHTML = `
+                            <div class="p-4 text-center text-muted">
+                                <i class="fas fa-check-double mb-2"></i><br>
+                                Bugün reddedilen randevu bulunmamaktadır.
+                            </div>`;
+                    } else {
+                        container.innerHTML = rejectedAppointments.map(app => `
+                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-4 py-3">
+                                <div>
+                                    <h6 class="mb-1 text-white"><i class="fas fa-user me-2 text-muted"></i>${app.trainerName}</h6>
+                                    <small class="text-muted"><i class="far fa-clock me-1"></i> ${app.scheduleSlotHour}:00 - ${app.scheduleSlotHour + 1}:00</small>
+                                </div>
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                    Reddedildi
+                                </span>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading rejected appointments:', error);
+                document.getElementById('rejectedAppointmentsContainer').innerHTML =
+                    '<div class="p-3 text-center text-danger">Veriler yüklenirken bir hata oluştu.</div>';
+            }
+        }
 
-    .list-group-item:hover {
-        border-left-color: #0d6efd;
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: #f5f5f5;
-    }
-</style>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (document.getElementById('rejectedAppointmentsContainer')) {
+                loadRejectedAppointments();
+            }
+        });
+    </script>
+}

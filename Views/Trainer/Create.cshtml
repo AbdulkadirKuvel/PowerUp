@@ -5,60 +5,116 @@
     var gyms = ViewBag.Gyms as List<Gym> ?? new List<Gym>();
 }
 
-<div class="container mt-5">
+<div class="container mt-5 mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Yeni Antrenör Ekle</h5>
+        <div class="col-lg-8">
+            <div class="card border-0" style="border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px 15px 0 0;">
+                    <div class="mb-3">
+                        <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center text-primary shadow-sm" style="width: 70px; height: 70px; font-size: 1.8rem;">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-white mb-0">Yeni Antrenör Ekle</h3>
+                    <p class="text-white-50 mb-0">Sisteme yeni bir eğitmen kaydedin</p>
                 </div>
-                <div class="card-body">
+
+                <div class="card-body p-5">
                     <form method="post" asp-action="Create">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">İsim</label>
-                            <input type="text" class="form-control" id="name" name="name"
-                                placeholder="Antrenör adını girin" required>
+                        
+                        <h6 class="text-muted text-uppercase mb-4 fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;">
+                            <i class="fas fa-id-card me-2"></i>Kişisel Bilgiler
+                        </h6>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label fw-medium text-dark">İsim Soyisim</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3">
+                                        <i class="fas fa-user text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control bg-light border-start-0 rounded-end-pill" id="name" name="name" placeholder="Ad Soyad" required style="padding: 10px;">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phoneNumber" class="form-label fw-medium text-dark">Telefon Numarası</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3">
+                                        <i class="fas fa-phone text-muted"></i>
+                                    </span>
+                                    <input type="tel" class="form-control bg-light border-start-0 rounded-end-pill" id="phoneNumber" name="phoneNumber" placeholder="+90 5XX..." required style="padding: 10px;">
+                                </div>
+                            </div>
                         </div>
+
+                        <hr class="my-4 text-muted opacity-25">
+
+                        <h6 class="text-muted text-uppercase mb-4 fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;">
+                            <i class="fas fa-user-shield me-2"></i>Hesap & Yetkilendirme
+                        </h6>
+
                         <div class="mb-3">
-                            <label for="phoneNumber" class="form-label">Telefon Numarası</label>
-                            <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber"
-                                placeholder="+90 5XX XXX XX XX" required>
+                            <label for="email" class="form-label fw-medium text-dark">E-Posta Adresi</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3">
+                                    <i class="fas fa-envelope text-muted"></i>
+                                </span>
+                                <input type="email" class="form-control bg-light border-start-0 rounded-end-pill" id="email" name="email" placeholder="trainer@ornek.com" required style="padding: 10px;">
+                            </div>
+                            <div class="form-text ms-3"><i class="fas fa-info-circle me-1"></i>Antrenör sisteme bu e-posta ile giriş yapacaktır.</div>
                         </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">E-Posta (Trainer Hesabı İçin)</label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                placeholder="trainer@example.com" required>
-                            <small class="text-muted">Bu e-posta ile trainer giriş yapacaktır</small>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-medium text-dark">Şifre Oluştur</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3">
+                                    <i class="fas fa-lock text-muted"></i>
+                                </span>
+                                <input type="password" class="form-control bg-light border-start-0 rounded-end-pill" id="password" name="password" placeholder="••••••••" required style="padding: 10px;">
+                            </div>
+                            <div class="form-text ms-3">En az 6 karakter, büyük harf ve sayı içermelidir.</div>
                         </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Şifre (Trainer Hesabı İçin)</label>
-                            <input type="password" class="form-control" id="password" name="password"
-                                placeholder="Güçlü bir şifre girin" required>
-                            <small class="text-muted">En az 6 karakter, büyük harf ve sayı içermeli</small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="gymId" class="form-label">Spor Salonu Seçin</label>
-                            <select class="form-control" id="gymId" name="gymId" required>
-                                <option value="">-- Spor Salonu Seçiniz --</option>
-                                @foreach (var gym in gyms)
-                                {
-                                    <option value="@gym.Id">@gym.Name</option>
-                                }
-                            </select>
+
+                        <div class="mb-4">
+                            <label for="gymId" class="form-label fw-medium text-dark">Çalıştığı Spor Salonu</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3">
+                                    <i class="fas fa-dumbbell text-muted"></i>
+                                </span>
+                                <select class="form-select bg-light border-start-0 rounded-end-pill" id="gymId" name="gymId" required style="padding: 10px;">
+                                    <option value="">-- Seçiniz --</option>
+                                    @foreach (var gym in gyms)
+                                    {
+                                        <option value="@gym.Id">@gym.Name</option>
+                                    }
+                                </select>
+                            </div>
                             @if (gyms.Count == 0)
                             {
-                                <small class="text-danger">Önce spor salonu eklemeniz gereklidir.</small>
+                                <div class="alert alert-warning mt-2 rounded-3" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Dikkat: Sistemde kayıtlı spor salonu bulunamadı. Önce salon eklemelisiniz.
+                                </div>
                             }
                         </div>
+
                         @if (ViewBag.ErrorMessage != null)
                         {
-                            <div class="alert alert-danger">
-                                @ViewBag.ErrorMessage
+                            <div class="alert alert-danger rounded-3 d-flex align-items-center" role="alert">
+                                <i class="fas fa-times-circle me-2 fa-lg"></i>
+                                <div>@ViewBag.ErrorMessage</div>
                             </div>
                         }
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-primary" @(gyms.Count == 0 ? "disabled" : "")>Ekle</button>
-                            <a class="btn btn-secondary" asp-action="Index">İptal</a>
+
+                        <div class="d-flex gap-3 justify-content-end mt-5">
+                            <a class="btn btn-light border px-4 rounded-pill" asp-action="Index">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill" 
+                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);"
+                                    @(gyms.Count == 0 ? "disabled" : "")>
+                                <i class="fas fa-check me-2"></i>Antrenörü Kaydet
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -66,3 +122,25 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Input odaklanma efekti */
+    .form-control:focus, .form-select:focus {
+        background-color: #fff !important;
+        border-color: #667eea;
+        box-shadow: none; 
+    }
+    
+    .input-group:focus-within .input-group-text {
+        background-color: #fff !important;
+        border-color: #667eea;
+    }
+
+    .input-group-text {
+        border: 1px solid #ced4da;
+    }
+    
+    .form-control, .form-select {
+        border: 1px solid #ced4da;
+    }
+</style>

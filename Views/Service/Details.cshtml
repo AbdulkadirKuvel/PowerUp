@@ -4,51 +4,85 @@
 
 @{
     ViewData["Title"] = "Hizmet Detayları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="mb-0">@Model.Name</h2>
-                </div>
-                <div class="card-body">
-                    <h4 class="mt-4">Bu Hizmeti Sunan Eğitmenciler</h4>
-                    @if (Model.TrainerServices != null && Model.TrainerServices.Any())
-                    {
-                        <div class="list-group mt-3">
-                            @foreach (var trainerService in Model.TrainerServices)
-                            {
-                                var trainer = trainerService.Trainer;
-                                <a href="@Url.Action("Detail", "Trainer", new { id = trainer?.Id })" 
-                                   class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h5 class="mb-1">@(trainer?.Name ?? "Bilinmeyen Eğitmenci")</h5>
-                                        <small class="text-muted">@(trainer?.PhoneNumber ?? "N/A")</small>
-                                    </div>
-                                    @if (trainer?.Gym != null)
-                                    {
-                                        <p class="mb-1">
-                                            <small>Spor Salonu: @trainer.Gym.Name</small>
-                                        </p>
-                                    }
-                                </a>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-warning mt-3">
-                            Bu hizmeti sunan eğitmenci bulunmamaktadır.
-                        </div>
-                    }
+<!-- Service detail styles moved to theme.css -->
 
-                    <div class="mt-4">
-                        <a class="btn btn-secondary" asp-action="Index">Geri Dön</a>
-                    </div>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="container mt-4 mb-5">
+    
+    <div data-aos="fade-right">
+        <a asp-action="Index" class="btn-back">
+            <i class="fas fa-arrow-left me-2"></i> Listeye Geri Dön
+        </a>
+    </div>
+
+    <div class="service-header-card" data-aos="zoom-in">
+        
+        <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" class="service-hero-img" alt="Fitness Arka Plan">
+        <div class="service-title-overlay">
+            <h1 class="service-title">@Model.Name</h1>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <h4 class="trainers-section-title" data-aos="fade-up">Bu Hizmeti Sunan Profesyoneller</h4>
+
+            @if (Model.TrainerServices != null && Model.TrainerServices.Any())
+            {
+                <div class="list-wrapper">
+                    @foreach (TrainerService trainerService in Model.TrainerServices)
+                    {
+                        Trainer? trainer = trainerService.Trainer;
+                        <a href="@Url.Action(action: "Details", controller: "Trainer", new { id = trainer?.Id })" 
+                           class="trainer-list-item" data-aos="fade-up" data-aos-duration="600">
+                            
+                            <div class="trainer-avatar">
+                                <i class="fas fa-user-ninja"></i>
+                            </div>
+
+                            <div class="trainer-info">
+                                <h5>@(trainer?.Name ?? "Bilinmeyen Eğitmen")</h5>
+                                <div class="trainer-meta">
+                                    <i class="fas fa-building"></i> @(trainer?.GymName ?? "Salon Bilgisi Yok.")
+                                </div>
+                                @if (trainer?.Gym != null)
+                                {
+                                    <div class="trainer-meta">
+                                        <i class="fas fa-map-marker-alt"></i> @trainer.Gym.Name
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="arrow-icon">
+                                <i class="fas fa-chevron-right fa-lg"></i>
+                            </div>
+                        </a>
+                    }
                 </div>
-            </div>
+            }
+            else
+            {
+                <div class="alert alert-warning bg-dark border-warning text-white mt-3" role="alert" data-aos="fade-in">
+                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                    Şu anda bu hizmet için atanmış bir antrenör bulunmamaktadır.
+                </div>
+            }
+
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            once: true
+        });
+    </script>
+}

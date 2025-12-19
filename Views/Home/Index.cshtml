@@ -1,8 +1,391 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+@{
+    ViewData["Title"] = "Ana Sayfa";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Layout dosyanızın yolu
+}
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    /* GENEL AYARLAR & GRADYANLAR */
+    :root {
+        --primary-color: #e31c25; /* Enerjik Kırmızı */
+        --dark-bg: #111111;
+        --card-bg: #1a1a1a;
+        --text-color: #ffffff;
+        /* Hafif Gradyan Tanımları */
+        --subtle-gradient: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+        --btn-gradient: linear-gradient(135deg, #e31c25 0%, #b01018 100%);
+    }
+
+    body {
+        background-color: var(--dark-bg);
+        color: var(--text-color);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+    }
+
+    /* HERO SECTION (ANA GİRİŞ) */
+    .hero-section {
+        position: relative;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center/cover;
+        color: white;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6); /* Resmi karartmak için */
+        background: linear-gradient(to bottom, rgba(0,0,0,0.3), #111111); /* Resimden siyaha geçiş */
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        max-width: 800px;
+        padding: 20px;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        font-weight: 300;
+        margin-bottom: 40px;
+        opacity: 0.9;
+    }
+
+    /* BUTONLAR */
+    .btn-gym {
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        border-radius: 50px;
+        border: none;
+        color: white;
+        background: var(--btn-gradient);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(227, 28, 37, 0.4);
+        display: inline-block;
+    }
+
+    .btn-gym:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 10px 25px rgba(227, 28, 37, 0.6);
+        color: white;
+    }
+
+    /* ÖZELLİKLER BÖLÜMÜ */
+    .features-section {
+        padding: 100px 0;
+        background-color: var(--dark-bg);
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: left;
+        margin-bottom: 60px;
+        position: relative;
+        display: inline-block;
+        left: 20%;
+        transform: translateX(-20%);
+    }
+
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: var(--primary-color);
+        margin: 15px auto 0;
+        border-radius: 2px;
+    }
+
+    .feature-card {
+        background: var(--subtle-gradient);
+        padding: 40px 30px;
+        border-radius: 15px;
+        text-align: center;
+        transition: all 0.4s ease;
+        height: 100%;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-15px);
+        background: linear-gradient(135deg, #252525 0%, #2f2f2f 100%);
+        border-color: var(--primary-color);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 25px;
+    }
+
+    /* POPÜLER SALONLAR & ANTRENÖRLER */
+    .content-grid {
+        padding: 80px 0;
+    }
+
+    .card-custom {
+        background-color: var(--card-bg);
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+    }
+
+    .card-custom:hover {
+        transform: scale(1.03);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .card-img-wrapper {
+        height: 250px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .card-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .card-custom:hover .card-img-wrapper img {
+        transform: scale(1.1);
+    }
+
+    .card-body {
+        padding: 25px;
+        color: white;
+    }
+
+    .card-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .card-text {
+        color: #aaaaaa;
+        font-size: 0.95rem;
+    }
+
+    /* SAYAÇ BÖLÜMÜ (Parallax) */
+    .stats-section {
+        background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') fixed center center;
+        padding: 80px 0;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    /* CALL TO ACTION ALT */
+    .cta-footer {
+        padding: 100px 0;
+        text-align: center;
+        background: linear-gradient(to top, #000000, #111111);
+    }
+</style>
+
+<div class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content" data-aos="zoom-in" data-aos-duration="1000">
+        <h1 class="hero-title">Potansiyelini <span style="color:var(--primary-color)">Keşfet</span></h1>
+        <p class="hero-subtitle">Tek üyelikle şehrin en iyi salonlarına ve profesyonel antrenörlerine sınırsız erişim sağla.</p>
+        
+        <a href="/Account/Login" class="btn-gym">Ücretsiz Başla <i class="fas fa-arrow-right ms-2"></i></a>
+    </div>
 </div>
+
+<div class="container features-section">
+    <h2 class="section-title" data-aos="fade-up">Neden Biz?</h2>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="feature-card">
+                <i class="fas fa-dumbbell feature-icon"></i>
+                <h3>Sınırsız Salon</h3>
+                <p style="color:#aaa;">Tek bir üyelikle sistemimizdeki tüm anlaşmalı spor salonlarına giriş yapın. Özgürlüğün tadını çıkarın.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="feature-card">
+                <i class="fas fa-users feature-icon"></i>
+                <h3>Uzman Antrenörler</h3>
+                <p style="color:#aaa;">Hedeflerinize ulaşmak için alanında uzman antrenörlerimizden birebir veya online destek alın.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="feature-card">
+                <i class="fas fa-chart-line feature-icon"></i>
+                <h3>Gelişim Takibi</h3>
+                <p style="color:#aaa;">Kullanıcı panelinizden gelişiminizi, antrenman geçmişinizi ve vücut analizlerinizi anlık takip edin.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4" data-aos="flip-left">
+                <div class="stat-number">25+</div>
+                <div class="stat-label">Anlaşmalı Salon</div>
+            </div>
+            <div class="col-md-4" data-aos="flip-left" data-aos-delay="200">
+                <div class="stat-number">150+</div>
+                <div class="stat-label">Profesyonel Eğitmen</div>
+            </div>
+            <div class="col-md-4" data-aos="flip-left" data-aos-delay="400">
+                <div class="stat-number">5000+</div>
+                <div class="stat-label">Mutlu Üye</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container content-grid">
+    <h2 class="section-title" data-aos="fade-up">Popüler Eğitmenler & Salonlar</h2>
+    
+    <div class="row">
+        @if (ViewBag.Featured == null || ((IEnumerable<PowerUp.Models.FeaturedItem>)ViewBag.Featured).Count() == 0)
+        {
+            <!-- Fallback to sample cards if no featured items set -->
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-duration="800">
+                <div class="card card-custom">
+                    <div class="card-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Antrenör">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Burak Yılmaz</h5>
+                        <p class="card-text text-uppercase text-danger small fw-bold">Crossfit Uzmanı</p>
+                        <p class="card-text">Sınırlarını zorlamayı sevenler için yüksek yoğunluklu antrenman programları.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-duration="800">
+                <div class="card card-custom">
+                    <div class="card-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1534258936925-c58bed479fcb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Salon">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Iron House Gym</h5>
+                        <p class="card-text text-uppercase text-danger small fw-bold">İstanbul / Kadıköy</p>
+                        <p class="card-text">24 saat açık, en yeni ekipmanlarla donatılmış devasa bir tesis.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-duration="800">
+                <div class="card card-custom">
+                    <div class="card-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1609899536872-171b31d87178?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Antrenör">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Selin Demir</h5>
+                        <p class="card-text text-uppercase text-danger small fw-bold">Yoga & Pilates</p>
+                        <p class="card-text">Zihin ve beden dengesini bulmanız için özel dersler.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-duration="800">
+                <div class="card card-custom">
+                    <div class="card-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1593079831268-3381b0db4a77?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Salon">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Pulse Studio</h5>
+                        <p class="card-text text-uppercase text-danger small fw-bold">İzmir / Alsancak</p>
+                        <p class="card-text">Butik konsept, özel ders odaklı modern stüdyo.</p>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            IEnumerable<FeaturedItem>? list = (IEnumerable<PowerUp.Models.FeaturedItem>)ViewBag.Featured;
+            int idx = 0;
+            foreach (FeaturedItem f in list)
+            {
+                int delay = 100 * idx;
+                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="@delay">
+                    <div class="card card-custom">
+                        <div class="card-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1534258936925-c58bed479fcb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="@((f.Trainer != null) ? f.Trainer.Name : f.Gym?.Name)">
+                        </div>
+                        <div class="card-body">
+                            @if (f.Trainer != null)
+                            {
+                                <h5 class="card-title">@f.Trainer.Name</h5>
+                                <p class="card-text text-uppercase text-danger small fw-bold">@f.Trainer.Gym?.Name</p>
+                                <p class="card-text">Profesyonel antrenör - detaylar için profil sayfasını ziyaret edin.</p>
+                            }
+                            else if (f.Gym != null)
+                            {
+                                <h5 class="card-title">@f.Gym.Name</h5>
+                                <p class="card-text text-uppercase text-danger small fw-bold">@f.Gym?.Name</p>
+                                <p class="card-text">Popüler salon - daha fazla bilgi için tıklayın.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+                idx++;
+            }
+        }
+    </div>
+</div>
+
+<div class="cta-footer">
+    <div class="container" data-aos="zoom-in">
+        <h2 class="mb-4 display-5 fw-bold">Bahaneleri Kapıda Bırak.</h2>
+        <p class="lead mb-5 text-muted">Hayalindeki vücuda ve sağlığa kavuşmak için yarını bekleme.</p>
+        <a href="/Account/Login" class="btn-gym btn-lg">Üye Ol ve Başla</a>
+        <br /><br />
+        <small class="text-muted mt-3">Kredi kartı gerekmez. İlk antrenman bizden.</small>
+    </div>
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    // Animasyonları Başlat
+    AOS.init({
+        once: true, // Animasyon sadece bir kere çalışsın
+        offset: 100, // Tetiklenme mesafesi
+        easing: 'ease-out-cubic'
+    });
+</script>

@@ -13,17 +13,36 @@
                     <h5 class="mb-0">Zaman Dilimini Sil</h5>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-warning">
-                        <strong>Uyarı!</strong> <span class="badge bg-danger">@days[Model.DayOfWeek] @Model.Hour:00 - @(Model.Gym?.Name ?? "Spor Merkezi")</span> saatini silmek istiyor musunuz?
-                    </div>
-                    <p class="text-muted">Bu işlem geri alınamaz. Bu zaman diliminde yapılmış rezervasyonlar da silinecektir.</p>
-                    <form method="post" asp-action="Delete">
-                        <input type="hidden" name="id" value="@Model.Id">
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-danger">Evet, Sil</button>
-                            <a class="btn btn-secondary" asp-action="MySchedule">İptal</a>
+                    @if (ViewBag.HasAcceptedAppointments == true)
+                    {
+                        <div class="alert alert-danger">
+                            <strong>Dikkat!</strong> Bu zaman diliminde kabul edilmiş randevular bulunmaktadır ve bu nedenle silinemez.
                         </div>
-                    </form>
+                        <p class="text-muted">Lütfen önce <a href="@Url.Action("Appointments","Trainer")">Randevular</a> sayfasından ilgili randevuları yönetin.</p>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a class="btn btn-primary" href="@Url.Action("Appointments","Trainer")">Randevulara Git</a>
+                            <a class="btn btn-secondary" asp-action="MySchedule">Geri</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <strong>Uyarı!</strong> <span class="badge bg-danger">@days[Model.DayOfWeek] @Model.Hour:00 - @(Model.Gym?.Name ?? "Spor Merkezi")</span> saatini silmek istiyor musunuz?</div>
+                        <p class="text-muted">Bu işlem geri alınamaz. Bu zaman diliminde bekleyen (@ViewBag.AwaitingCount) randevular otomatik olarak reddedilecektir.</p>
+                        <form method="post" asp-action="Delete">
+                            <input type="hidden" name="id" value="@Model.Id">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                    <label class="form-check-label" for="confirmDelete">Evet, silmek istediğimi onaylıyorum</label>
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-danger">Evet, Sil</button>
+                                <a class="btn btn-secondary" asp-action="MySchedule">İptal</a>
+                            </div>
+                        </form>
+                    }
                 </div>
             </div>
         </div>
