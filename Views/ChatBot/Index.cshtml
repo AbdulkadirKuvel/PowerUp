@@ -1,155 +1,354 @@
 @{
-    ViewData["Title"] = "Chatbot";
+    ViewData["Title"] = "AI Asistan";
 }
 
-<div class="container mt-4">
+<style>
+    /* PowerUp Chat Tema Özel CSS */
+    .chat-card {
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        height: 80vh; /* Ekranın %80'ini kaplasın */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+    }
+
+    .chat-body {
+        flex: 1;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        scroll-behavior: smooth;
+    }
+
+    /* Scrollbar Özelleştirme */
+    .chat-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    .chat-body::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    .chat-body::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+
+    .message {
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-content {
+        padding: 1rem 1.2rem;
+        position: relative;
+        max-width: 80%;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* Bot Mesaj Balonu */
+    .bot-message {
+        background-color: white;
+        border-radius: 0 20px 20px 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border: 1px solid #eef0f2;
+        color: #4a4a4a;
+    }
+
+    /* Kullanıcı Mesaj Balonu */
+    .user-message {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px 0 20px 20px;
+        color: white;
+        box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+    }
+
+    .chat-footer {
+        background-color: white;
+        border-top: 1px solid #eee;
+        padding: 1rem;
+    }
+
+    .quick-action-btn {
+        font-size: 0.8rem;
+        transition: all 0.2s;
+    }
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Dosya Yükleme Alanı */
+    .file-preview-badge {
+        display: none;
+        font-size: 0.8rem;
+        background-color: #e9ecef;
+        padding: 5px 10px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        color: #495057;
+    }
+    
+    .loading-dots:after {
+        content: ' .';
+        animation: dots 1s steps(5, end) infinite;
+    }
+
+    #messageInput {
+        color: #333;
+    }
+    
+    @@keyframes dots {
+        0%, 20% { color: rgba(0,0,0,0); text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0);}
+        40% { color: #333; text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0);}
+        60% { text-shadow: .25em 0 0 #333, .5em 0 0 rgba(0,0,0,0);}
+        80%, 100% { text-shadow: .25em 0 0 #333, .5em 0 0 #333;}
+    }
+</style>
+
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card border-0 chat-card">
+        <div class="col-lg-10 col-xl-9">
+            
+            <div class="card chat-card">
                 
-                <div class="card-header py-3 chat-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                <i class="fas fa-robot fa-lg"></i>
-                            </div>
-                            <div>
-                                <h5 class="mb-0 fw-bold">PowerUp Asistanı</h5>
-                                <small class="text-white-50" style="font-size: 0.85rem;">AI destekli yardımcı chatbot</small>
-                            </div>
+                <div class="chat-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-brain fa-lg text-white"></i>
                         </div>
-                        <span class="badge bg-success bg-opacity-75 rounded-pill px-3"><i class="fas fa-circle fa-xs me-1"></i>Çevrimiçi</span>
+                        <div>
+                            <h5 class="mb-0 fw-bold">PowerUp AI</h5>
+                            <small class="text-white-50">Gemini & Pollinations Destekli</small>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-2">
+                            <i class="fas fa-circle fa-xs me-1 text-success"></i> Online
+                        </span>
                     </div>
                 </div>
 
-                <div class="card-body chat-container" id="chatContainer">
-                    <div class="message bot">
-                        <div class="d-flex justify-content-start">
-                            <div class="p-3 bg-white rounded shadow-sm message-content message-content bot">
+                <div class="chat-body" id="chatContainer">
+                    <div class="message d-flex justify-content-start">
+                        <div class="d-flex flex-column align-items-start" style="max-width: 80%;">
+                            <div class="message-content bot-message">
                                 <p class="mb-0">
                                     <i class="fas fa-robot text-primary me-2"></i>
-                                    <strong>Bot:</strong> Merhaba! Size antrenör bulma, randevu alma veya spor salonu hakkında nasıl yardımcı olabilirim?
+                                    Merhaba! Ben PowerUp Asistanı. 
+                                    <br><br>
+                                    💪 Spor tavsiyeleri verebilirim.
+                                    <br>
+                                    📸 Resminizi analiz edip, 3 ay sonraki halinizi çizebilirim.
+                                    <br>
+                                    📅 Randevu almanıza yardımcı olabilirim.
                                 </p>
-                                <small class="text-muted d-block mt-1 text-end" style="font-size: 0.7rem;">Şimdi</small>
                             </div>
+                            <small class="text-muted ms-2 mt-1" style="font-size: 0.7rem;">Şimdi</small>
                         </div>
                     </div>
                 </div>
 
-                <div class="card-footer bg-white p-3 chat-footer">
-                    <form id="chatForm" class="input-group">
-                        <input type="text" class="form-control border-end-0 chat-input" id="messageInput" placeholder="Mesajınızı buraya yazın..." autocomplete="off">
-                        <button class="btn btn-primary chat-send" type="submit">
+                <div class="chat-footer">
+                    <div id="filePreview" class="file-preview-badge align-items-center">
+                        <i class="fas fa-image me-2 text-primary"></i>
+                        <span id="fileName">resim.jpg</span>
+                        <button type="button" class="btn-close ms-2" style="font-size: 0.7rem;" onclick="clearFile()"></button>
+                    </div>
+
+                    <form id="chatForm" class="d-flex align-items-center gap-2" enctype="multipart/form-data">
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect()">
+                        
+                        <button type="button" class="btn btn-light rounded-circle text-muted border" 
+                                style="width: 45px; height: 45px;" 
+                                onclick="document.getElementById('fileInput').click()"
+                                title="Resim Yükle">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+
+                        <input type="text" class="form-control border-0 bg-light rounded-pill px-4 py-2" 
+                               id="messageInput" 
+                               placeholder="Mesajınızı yazın veya resim yükleyin..." 
+                               style="height: 45px;" autocomplete="off">
+
+                        <button class="btn btn-primary rounded-circle shadow-sm" 
+                                type="submit" 
+                                style="width: 45px; height: 45px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border:none;">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </form>
+                    
+                    <div class="mt-4 d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: none;">
+                        <button class="btn btn-outline-secondary rounded-pill btn-sm quick-action-btn text-nowrap" onclick="sendQuickMessage('3 ay spor yaparsam nasıl görünürüm? (Resim Yükle)')">
+                            <i class="fas fa-camera me-1"></i>Gelecekteki Ben
+                        </button>
+                        <button class="btn btn-outline-secondary rounded-pill btn-sm quick-action-btn text-nowrap" onclick="sendQuickMessage('Kilo vermek için ne yemeliyim?')">
+                            <i class="fas fa-apple-alt me-1"></i>Beslenme Tavsiyesi
+                        </button>
+                        <button class="btn btn-outline-secondary rounded-pill btn-sm quick-action-btn text-nowrap" onclick="sendQuickMessage('Randevu almak istiyorum')">
+                            <i class="fas fa-calendar-check me-1"></i>Randevu
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="mt-4">
-                <h6 class="text-muted mb-3 ps-2"><i class="far fa-lightbulb text-warning me-2"></i>Sık Sorulanlar:</h6>
-                <div class="row g-2">
-                    <div class="col-md-3 col-6">
-                        <button class="btn btn-outline-primary btn-sm w-100 py-2 rounded-pill" onclick="sendQuickMessage('Antrenör nasıl bulurum?')">
-                            Antrenör Bul
-                        </button>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <button class="btn btn-outline-primary btn-sm w-100 py-2 rounded-pill" onclick="sendQuickMessage('Randevu almak istiyorum')">
-                            Randevu Al
-                        </button>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <button class="btn btn-outline-primary btn-sm w-100 py-2 rounded-pill" onclick="sendQuickMessage('Hangi hizmetler var?')">
-                            Hizmetler
-                        </button>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <button class="btn btn-outline-primary btn-sm w-100 py-2 rounded-pill" onclick="sendQuickMessage('Spor salonu nerede?')">
-                            Konum
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
 
-
-
 <script>
-    const chatForm = document.getElementById('chatForm');
-    const messageInput = document.getElementById('messageInput');
     const chatContainer = document.getElementById('chatContainer');
+    const messageInput = document.getElementById('messageInput');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const fileNameDisplay = document.getElementById('fileName');
+    const chatForm = document.getElementById('chatForm');
 
-    function addMessageToChat(message, isUser) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-        
-        const flexClass = isUser ? 'justify-content-end' : 'justify-content-start';
-        const bgClass = isUser ? 'bg-primary text-white' : 'bg-white text-dark shadow-sm';
-        const radiusClass = isUser ? 'border-radius: 15px; border-bottom-right-radius: 5px;' : 'border-radius: 15px; border-bottom-left-radius: 5px;';
-        
-        let contentHtml = '';
-        if (isUser) {
-            contentHtml = `<strong>Siz:</strong> ${message}`;
-        } else {
-            contentHtml = `<i class="fas fa-robot text-primary me-2"></i><strong>Bot:</strong> ${message}`;
-        }
-
-        messageDiv.innerHTML = `
-            <div class="d-flex ${flexClass}">
-                <div class="p-3 ${bgClass}" style="max-width: 75%; ${radiusClass}">
-                    <p class="mb-0">${contentHtml}</p>
-                    <small class="${isUser ? 'text-white-50' : 'text-muted'} d-block mt-1 text-end" style="font-size: 0.7rem;">Az önce</small>
-                </div>
-            </div>
-        `;
-        
-        chatContainer.appendChild(messageDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    function sendQuickMessage(message) {
-        messageInput.value = message;
-        sendMessage();
-    }
-
-    async function sendMessage() {
-        const message = messageInput.value.trim();
-        if (!message) return;
-
-        addMessageToChat(message, true);
-        messageInput.value = '';
-        
-        chatForm.classList.add('chat-input-loading');
-
-        try {
-            const response = await fetch('@Url.Action("SendMessage", "ChatBot")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'message=' + encodeURIComponent(message)
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    addMessageToChat(data.message, false);
-                }
-            } else {
-                addMessageToChat('Bir hata oluştu.', false);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            addMessageToChat('Bağlantı hatası.', false);
-        } finally {
-            chatForm.classList.remove('chat-input-loading');
+    // Dosya seçildiğinde çalışır
+    function handleFileSelect() {
+        if (fileInput.files.length > 0) {
+            filePreview.style.display = 'inline-flex';
+            fileNameDisplay.textContent = fileInput.files[0].name;
+            messageInput.placeholder = "Resim ile ilgili sorunuzu yazın...";
             messageInput.focus();
         }
     }
 
-    chatForm.addEventListener('submit', (e) => {
+    // Dosya seçimini iptal eder
+    function clearFile() {
+        fileInput.value = '';
+        filePreview.style.display = 'none';
+        messageInput.placeholder = "Mesajınızı yazın...";
+    }
+
+    // Hızlı mesaj gönderme
+    function sendQuickMessage(msg) {
+        if(msg.includes("Resim Yükle")) {
+            // Kullanıcıyı resim yüklemeye teşvik et
+            document.getElementById('fileInput').click();
+            messageInput.value = "Bu fotoğrafıma göre 3 ay spor yaparsam nasıl görünürüm?";
+        } else {
+            messageInput.value = msg;
+            handleFormSubmit(new Event('submit'));
+        }
+    }
+
+    // Mesajı Ekrana Ekleme (HTML String Oluşturucu)
+    function appendMessage(content, isUser, imageUrl = null) {
+        const div = document.createElement('div');
+        div.className = `message d-flex ${isUser ? 'justify-content-end' : 'justify-content-start'}`;
+        
+        const bubbleClass = isUser ? 'user-message' : 'bot-message';
+        const iconHtml = isUser ? '' : '<i class="fas fa-robot text-primary me-2"></i>';
+        
+        let imageHtml = '';
+        if (imageUrl) {
+            imageHtml = `
+                <div class="mt-3">
+                    <img src="${imageUrl}" class="img-fluid rounded shadow-sm border" style="max-height: 300px;" alt="Generated Image">
+                    <div class="mt-1"><small class="text-muted"><i class="fas fa-magic me-1"></i>AI tarafından oluşturuldu</small></div>
+                </div>
+            `;
+        }
+
+        // Eğer kullanıcı resim yüklediyse ve mesaj gönderdiyse (istemci tarafında basit gösterim)
+        let uploadedImageHtml = '';
+        if (isUser && fileInput.files.length > 0 && content === messageInput.value) {
+             // Kullanıcının yüklediği resmi önizleme olarak sohbete ekleyebiliriz (opsiyonel, şu an karmaşıklık olmasın diye eklemiyorum)
+             // Ancak "Resim Eklendi" ibaresi koyalım
+             uploadedImageHtml = '<div class="text-white-50 mb-1"><small><i class="fas fa-paperclip"></i> Resim Eklendi</small></div>';
+        }
+
+        div.innerHTML = `
+            <div class="d-flex flex-column ${isUser ? 'align-items-end' : 'align-items-start'}" style="max-width: 80%;">
+                <div class="message-content ${bubbleClass}">
+                    ${uploadedImageHtml}
+                    <p class="mb-0">
+                        ${iconHtml}
+                        ${content.replace(/\n/g, '<br>')}
+                    </p>
+                    ${imageHtml}
+                </div>
+                <small class="text-muted ${isUser ? 'me-2' : 'ms-2'} mt-1" style="font-size: 0.7rem;">Az önce</small>
+            </div>
+        `;
+
+        chatContainer.appendChild(div);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Form Submit İşlemi
+    async function handleFormSubmit(e) {
         e.preventDefault();
-        sendMessage();
-    });
+        
+        const message = messageInput.value.trim();
+        const hasFile = fileInput.files.length > 0;
+
+        if (!message && !hasFile) return;
+
+        // 1. Kullanıcı mesajını ekrana bas
+        appendMessage(message || (hasFile ? "Resim analizi istiyorum." : ""), true);
+
+        // 2. Form Data Hazırla
+        const formData = new FormData();
+        formData.append("message", message);
+        if (hasFile) {
+            formData.append("file", fileInput.files[0]);
+        }
+
+        // Inputları temizle
+        messageInput.value = '';
+        const tempHasFile = hasFile; // clearFile yapmadan önce durumu sakla
+        clearFile();
+
+        // 3. Yükleniyor Göstergesi
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message d-flex justify-content-start';
+        loadingDiv.id = 'loadingIndicator';
+        loadingDiv.innerHTML = `
+            <div class="message-content bot-message text-muted fst-italic">
+                <i class="fas fa-robot text-primary me-2"></i>
+                <span class="loading-dots">Düşünüyor</span>
+            </div>
+        `;
+        chatContainer.appendChild(loadingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        try {
+            // 4. API İsteği
+            const response = await fetch('@Url.Action("SendMessage", "ChatBot")', {
+                method: 'POST',
+                body: formData // Content-Type: multipart/form-data otomatik ayarlanır
+            });
+
+            const data = await response.json();
+
+            // Yükleniyor'u kaldır
+            loadingDiv.remove();
+
+            if (data.success) {
+                appendMessage(data.message, false, data.imageUrl);
+            } else {
+                appendMessage("Üzgünüm, bir hata oluştu: " + data.message, false);
+            }
+
+        } catch (error) {
+            loadingDiv.remove();
+            console.error(error);
+            appendMessage("Bağlantı hatası oluştu.", false);
+        }
+    }
+
+    chatForm.addEventListener('submit', handleFormSubmit);
 </script>
