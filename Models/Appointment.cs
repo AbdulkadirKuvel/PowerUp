@@ -28,9 +28,10 @@ public class Appointment
     [MaxLength(500)]
     public string? Notes { get; set; }
 
-    // Status: 0 = Awaiting, 1 = Accepted, 2 = Rejected
+    // Status: 0 = Awaiting, 1 = Accepted, 2 = Rejected, 3 = Completed
     public int Status { get; set; } = 0; // 0 = Awaiting
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }
+    public DateTime? CompletedAt { get; set; } = null;
 }

@@ -16,6 +16,9 @@ public class Gym
 
     public int AnnuallyPrice { get; set; }
 
+    public TimeSpan OpeningTime { get; set; } = new TimeSpan(8, 0, 0);
+    public TimeSpan ClosingTime { get; set; } = new TimeSpan(22, 0, 0);
+
     public ICollection<Trainer> Trainers { get; set; } = [];
     public ICollection<Subscription> Subscriptions { get; set; } = [];
     
