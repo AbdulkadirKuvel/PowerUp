@@ -1,7 +1,7 @@
 @model List<PowerUp.Models.Appointment>
 
 @{
-    ViewData["Title"] = "Tüm Randevular";
+    ViewData[index: "Title"] = "Tüm Randevular";
 }
 
 <div class="container mt-5">
@@ -26,14 +26,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var a in Model)
+                    @foreach (Appointment a in Model)
                     {
                         <tr>
-                            <td>@a.AppointmentDate.ToString("dd.MM.yyyy")</td>
+                            <td>@a.AppointmentDate.ToString(format: "dd.MM.yyyy")</td>
                             <td>@(a.ScheduleSlot != null ? a.ScheduleSlot.Hour + ":00 - " + (a.ScheduleSlot.Hour + 1) + ":00" : "")</td>
                             <td>@a.Trainer?.Name</td>
                             <td>@a.User?.UserName</td>
-                            <td>@string.Join(", ", a.ScheduleSlot?.ScheduleSlotServices?.Select(ss => ss.Service?.Name) ?? new List<string>())</td>
+                            <td>@string.Join(separator: ", ", a.ScheduleSlot?.ScheduleSlotServices?.Select(ss => ss.Service?.Name) ?? new List<string>())</td>
                             <td>
                                 @switch (a.Status)
                                 {

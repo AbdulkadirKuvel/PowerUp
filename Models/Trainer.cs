@@ -19,6 +19,8 @@ public class Trainer
 
     public string? GymName => Gym?.Name ?? "Spor Salonu Bilinmiyor";
 
+    public string Specialization { get; set; } = "Genel Fitness";
+
     [ForeignKey("ApplicationUser")]
     public string? ApplicationUserId { get; set; }
     public ApplicationUser? ApplicationUser { get; set; }
