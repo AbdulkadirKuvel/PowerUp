@@ -1,5 +1,6 @@
 using PowerUp.Data;
 using PowerUp.Models;
+using PowerUp.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddHttpClient();
+
+// Background worker to auto-reject/complete appointments and create rating notifications
+builder.Services.AddHostedService<PowerUp.Services.AppointmentCompletionService>();
 
 var app = builder.Build();
 
@@ -59,11 +65,17 @@ using (var scope = app.Services.CreateScope())
         await roleManager.CreateAsync(new IdentityRole("Trainer"));
 
     // Create admin user
-    var adminUser = await userManager.FindByEmailAsync("Admin@gmail.com");
+    var adminUser = await userManager.FindByEmailAsync("B221210002@sakarya.edu.tr");
+    var preAdminUser = await userManager.FindByEmailAsync("Admin@gmail.com");
+    if (preAdminUser != null)
+    {
+        await userManager.RemoveFromRoleAsync(preAdminUser, "Admin");
+    }
+
     if (adminUser == null)
     {
-        adminUser = new ApplicationUser { UserName = "Admin@gmail.com", Email = "Admin@gmail.com" };
-        await userManager.CreateAsync(adminUser, "Sau");
+        adminUser = new ApplicationUser { UserName = "Admin", Email = "B221210002@sakarya.edu.tr" };
+        await userManager.CreateAsync(adminUser, "sau");
         await userManager.AddToRoleAsync(adminUser, "Admin");
     }
 }

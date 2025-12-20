@@ -26,6 +26,7 @@ public class GymController(ApplicationDbContext context) : Controller
     {
         var gym = await _context.Gyms
             .Include(g => g.Features)
+            .Include(g => g.Trainers)
             .FirstOrDefaultAsync(g => g.Id == id);
 
         if (gym == null)
@@ -47,53 +48,53 @@ public class GymController(ApplicationDbContext context) : Controller
     }
 
     [HttpPost]
-[Authorize(Roles = Roles.RoleAdmin)]
-public async Task<IActionResult> Create(Gym gym, List<int> selectedFeatureIds, string? customFeatures) // <-- Bu parametreler VAR MI?
-{
-    if (ModelState.IsValid)
+    [Authorize(Roles = Roles.RoleAdmin)]
+    public async Task<IActionResult> Create(Gym gym, List<int> selectedFeatureIds, string? customFeatures) // <-- Bu parametreler VAR MI?
     {
-        // 1. Checkbox'tan seçilenleri ekleyen kısım BURASI
-        if (selectedFeatureIds != null)
+        if (ModelState.IsValid)
         {
-            var featuresToAdd = await _context.GymFeatures
-                .Where(f => selectedFeatureIds.Contains(f.Id))
-                .ToListAsync();
-            
-            foreach (var feature in featuresToAdd)
+            // 1. Checkbox'tan seçilenleri ekleyen kısım BURASI
+            if (selectedFeatureIds != null)
             {
-                gym.Features.Add(feature);
+                var featuresToAdd = await _context.GymFeatures
+                    .Where(f => selectedFeatureIds.Contains(f.Id))
+                    .ToListAsync();
+
+                foreach (var feature in featuresToAdd)
+                {
+                    gym.Features.Add(feature);
+                }
             }
+
+            // 2. Özel yazılanları ekleyen kısım
+            if (!string.IsNullOrWhiteSpace(customFeatures))
+            {
+                // ... (önceki cevaptaki kodlar)
+                var customNames = customFeatures.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                foreach (var name in customNames)
+                {
+                    var existing = await _context.GymFeatures.FirstOrDefaultAsync(f => f.Name.ToLower() == name.ToLower());
+                    if (existing != null) gym.Features.Add(existing);
+                    else gym.Features.Add(new GymFeature { Name = name });
+                }
+            }
+
+            _context.Gyms.Add(gym);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("List");
         }
 
-        // 2. Özel yazılanları ekleyen kısım
-        if (!string.IsNullOrWhiteSpace(customFeatures))
-        {
-            // ... (önceki cevaptaki kodlar)
-             var customNames = customFeatures.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-             foreach (var name in customNames)
-             {
-                 var existing = await _context.GymFeatures.FirstOrDefaultAsync(f => f.Name.ToLower() == name.ToLower());
-                 if(existing != null) gym.Features.Add(existing);
-                 else gym.Features.Add(new GymFeature { Name = name });
-             }
-        }
-
-        _context.Gyms.Add(gym);
-        await _context.SaveChangesAsync();
-        return RedirectToAction("List");
+        // Hata varsa listeyi tekrar doldur
+        ViewBag.AvailableFeatures = await _context.GymFeatures.ToListAsync();
+        return View(gym);
     }
-    
-    // Hata varsa listeyi tekrar doldur
-    ViewBag.AvailableFeatures = await _context.GymFeatures.ToListAsync();
-    return View(gym);
-}
 
-[Authorize(Roles = Roles.RoleAdmin)]
+    [Authorize(Roles = Roles.RoleAdmin)]
     public async Task<IActionResult> Edit(int id)
     {
         // 1. Gym'i özellikleri (Features) ile birlikte çekiyoruz
         var gym = await _context.Gyms
-            .Include(g => g.Features) 
+            .Include(g => g.Features)
             .FirstOrDefaultAsync(g => g.Id == id);
 
         if (gym == null)
@@ -150,7 +151,7 @@ public async Task<IActionResult> Create(Gym gym, List<int> selectedFeatureIds, s
                 foreach (var name in customNames)
                 {
                     var existingFeature = await _context.GymFeatures.FirstOrDefaultAsync(f => f.Name.ToLower() == name.ToLower());
-                    
+
                     if (existingFeature != null)
                     {
                         // Zaten varsa ve listede seçili değilse ekle
@@ -183,13 +184,46 @@ public async Task<IActionResult> Create(Gym gym, List<int> selectedFeatureIds, s
     }
 
     [Authorize(Roles = Roles.RoleAdmin)]
-    public async Task<IActionResult> Delete(int id)
+    [HttpGet]
+    public async Task<IActionResult> CheckDeleteStatus(int id)
     {
-        var gym = await _context.Gyms.FindAsync(id);
+        // Salonu ve içindeki antrenörleri getiriyoruz
+        var gym = await _context.Gyms
+            .Include(g => g.Trainers) // İlişkili veriyi çekmeyi unutma
+            .FirstOrDefaultAsync(m => m.Id == id);
+
         if (gym == null)
-            return NotFound();
-        return View(gym);
+        {
+            return Json(new { success = false, message = "Salon bulunamadı." });
+        }
+
+        bool hasTrainers = gym.Trainers.Count != 0;
+        int trainerCount = gym.Trainers.Count;
+
+        return Json(new
+        {
+            success = true,
+            hasTrainers,
+            trainerCount,
+            gymName = gym.Name
+        });
     }
+
+    // [Authorize(Roles = Roles.RoleAdmin)]
+    // public async Task<IActionResult> Delete(int id)
+    // {
+    //     var gym = await _context.Gyms.FindAsync(id);
+    //     if (gym == null)
+    //         return NotFound();
+    //     ViewBag.acceptedAppointments = 0;
+    //     ViewBag.requestedAppointments = 0;
+    //     foreach (var trainer in gym.Trainers)
+    //     {
+    //         ViewBag.acceptedAppointments += trainer.Appointments.Count(a => a.Status == 1);
+    //         ViewBag.requestedAppointments += trainer.Appointments.Count(a => a.Status == 0);
+    //     }
+    //     return View(gym); // Burada view döndürmesin.
+    // }
 
     [HttpPost]
     [Authorize(Roles = Roles.RoleAdmin)]

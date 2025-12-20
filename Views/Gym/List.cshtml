@@ -1,7 +1,7 @@
 @model List<PowerUp.Models.Gym>
 
 @{
-    ViewData["Title"] = "Spor Salonları";
+    ViewData[index: "Title"] = "Spor Salonları";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <div class="container mt-5">
-    
+
     <div class="row align-items-center page-header" data-aos="fade-down">
         <div class="col-md-8">
             <h1 class="section-title">@ViewData["Title"]</h1>
@@ -41,12 +41,13 @@
                 <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up" data-aos-duration="800">
                     <div class="gym-card">
                         <div class="gym-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1593079831268-3381b0db4a77?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Gym">
+                            <img src="https://images.unsplash.com/photo-1593079831268-3381b0db4a77?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                                alt="Gym">
                         </div>
 
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">@gym.Name</h5>
-                            
+
                             <div class="gym-info">
                                 <i class="fas fa-map-marker-alt"></i>
                                 <span>@gym.Address</span>
@@ -66,14 +67,14 @@
                             <a class="btn-details" asp-action="Details" asp-route-id="@gym.Id">
                                 İncele <i class="fas fa-arrow-right ms-1"></i>
                             </a>
-                            
-                            @if (User.IsInRole("Admin"))
+
+                            @if (User.IsInRole(role: "Admin"))
                             {
                                 <div>
                                     <a class="btn-action" asp-action="Edit" asp-route-id="@gym.Id" title="Düzenle">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button class="btn-action delete" onclick="showConfirm('@Url.Action("Delete","Gym", new { id = gym.Id })', 'Silmek istediğinizden emin misiniz?')" title="Sil">
+                                    <button class="btn-action delete" onclick="deleteGymProcess(@gym.Id)" title="Sil">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
@@ -85,22 +86,109 @@
         </div>
     }
 </div>
-
 @section Scripts {
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         AOS.init();
+        // DialogBox zaten layout'ta veya yukarıda tanımlanmış olmalı
+        // window.DialogBox = new DialogBox(); (dialogBox.js içinde var)
 
-        function showConfirm(url, message) {
-            window.DialogBox.show({
-                type: 'warning',
-                title: 'Onay',
-                message: message,
-                buttons: [
-                    { text: 'İptal', action: () => window.DialogBox.close(), isPrimary: false },
-                    { text: 'Evet', action: () => { window.location.href = url; }, isPrimary: true }
-                ]
-            });
+        async function deleteGymProcess(gymId) {
+            try {
+                // 1. Backend'e sor: Bu salonun durumu ne?
+                const response = await fetch(`/Gym/CheckDeleteStatus/${gymId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    window.DialogBox.show({
+                        type: 'error',
+                        title: 'Hata',
+                        message: data.message || 'Bir hata oluştu.'
+                    });
+                    return;
+                }
+
+                // SENARYO 1: Antrenör Varsa
+                if (data.hasTrainers) {
+                    window.DialogBox.show({
+                        type: 'error', // veya 'warning'
+                        title: 'Silme İşlemi Engellendi',
+                        message: `"${data.gymName}" isimli salonda kayıtlı ${data.trainerCount} adet antrenör bulunmaktadır. Salonu silmek için önce antrenörleri silmelisiniz veya başka salona taşımalısınız.`,
+                        buttons: [
+                            {
+                                text: 'İptal',
+                                action: () => window.DialogBox.close(),
+                                isPrimary: false
+                            },
+                            {
+                                text: 'Antrenörleri Gör',
+                                isPrimary: true,
+                                action: () => {
+                                    // Antrenör listesine yönlendir
+                                    // Eğer filtreleme yapabiliyorsan ?gymId=... ekleyebilirsin
+                                    window.location.href = '/Trainer'; 
+                                }
+                            }
+                        ]
+                    });
+                } 
+                // SENARYO 2: Antrenör Yoksa (Onaylı Silme)
+                else {
+                    window.DialogBox.show({
+                        type: 'warning',
+                        title: 'Salonu Sil',
+                        message: `"${data.gymName}" isimli salonu kalıcı olarak silmek üzeresiniz. Bu işlem geri alınamaz.`,
+                        checkbox: {
+                            label: 'Bu işlemi onaylıyorum ve silinmesini kabul ediyorum.',
+                            checked: false
+                        },
+                        buttons: [
+                            {
+                                text: 'Vazgeç',
+                                action: () => window.DialogBox.close(),
+                                isPrimary: false
+                            },
+                            {
+                                text: 'Sil',
+                                isPrimary: true,
+                                action: () => performDelete(gymId)
+                            }
+                        ]
+                    });
+                }
+
+            } catch (error) {
+                console.error("Hata:", error);
+                window.DialogBox.show({
+                    type: 'error',
+                    title: 'Bağlantı Hatası',
+                    message: 'Sunucu ile iletişim kurulurken bir hata oluştu.'
+                });
+            }
+        }
+
+        // Fiziksel silme işlemini yapan fonksiyon
+        function performDelete(id) {
+            // MVC Controller'daki [HttpPost] Delete metodunu tetiklemek için sanal bir form oluşturuyoruz.
+            // Fetch kullanırsak redirect işlemini manuel yönetmek gerekir, form post daha temizdir.
+            
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Gym/Delete/' + id;
+
+            // CSRF Token (Anti-Forgery) varsa eklenmeli (Genelde gereklidir)
+            // Layout'unda __RequestVerificationToken input'u varsa onu kopyala:
+            var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) {
+                var hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = '__RequestVerificationToken';
+                hiddenField.value = tokenInput.value;
+                form.appendChild(hiddenField);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
         }
     </script>
 }

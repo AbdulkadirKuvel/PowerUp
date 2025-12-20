@@ -1,7 +1,8 @@
 @model PowerUp.Models.Gym
 @{
     ViewData["Title"] = "Spor Salonu Ekle";
-    var availableFeatures = ViewBag.AvailableFeatures as List<PowerUp.Models.GymFeature> ?? new List<PowerUp.Models.GymFeature>();
+    var availableFeatures = ViewBag.AvailableFeatures as List<PowerUp.Models.GymFeature> ?? new
+    List<PowerUp.Models.GymFeature>();
 }
 
 <div class="container mt-5">
@@ -13,33 +14,50 @@
                 </div>
                 <div class="card-body p-4">
                     <form method="post" asp-action="Create">
-                        
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="name" class="form-label text-muted">Salon Adı</label>
-                                <input type="text" class="form-control bg-dark text-white border-secondary" id="name" asp-for="Name" placeholder="PowerUp Merkez" required>
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="name"
+                                    asp-for="Name" placeholder="PowerUp Merkez" required>
                                 <span asp-validation-for="Name" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="address" class="form-label text-muted">Adres</label>
-                                <input type="text" class="form-control bg-dark text-white border-secondary" id="address" asp-for="Address" placeholder="Kadıköy, İstanbul" required>
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="address"
+                                    asp-for="Address" placeholder="Kadıköy, İstanbul" required>
                                 <span asp-validation-for="Address" class="text-danger small"></span>
                             </div>
                         </div>
-
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="OpeningTime" class="form-label text-white">Açılış Saati</label>
+                                <input asp-for="OpeningTime" type="time"
+                                    class="form-control bg-dark text-white border-secondary" />
+                                <span asp-validation-for="OpeningTime" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ClosingTime" class="form-label text-white">Kapanış Saati</label>
+                                <input asp-for="ClosingTime" type="time"
+                                    class="form-control bg-dark text-white border-secondary" />
+                                <span asp-validation-for="ClosingTime" class="text-danger"></span>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="monthlyPrice" class="form-label text-muted">Aylık Fiyat (₺)</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-secondary border-secondary text-white">₺</span>
-                                    <input type="number" class="form-control bg-dark text-white border-secondary" id="monthlyPrice" asp-for="MonthlyPrice" placeholder="1000" required>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary"
+                                        id="monthlyPrice" asp-for="MonthlyPrice" placeholder="1000" required>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="annuallyPrice" class="form-label text-muted">Yıllık Fiyat (₺)</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-secondary border-secondary text-white">₺</span>
-                                    <input type="number" class="form-control bg-dark text-white border-secondary" id="annuallyPrice" asp-for="AnnuallyPrice" placeholder="10000" required>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary"
+                                        id="annuallyPrice" asp-for="AnnuallyPrice" placeholder="10000" required>
                                 </div>
                             </div>
                         </div>
@@ -47,7 +65,7 @@
                         <hr class="border-secondary my-4">
 
                         <h6 class="text-danger mb-3">Özellikler & İmkanlar</h6>
-                        
+
                         <div class="mb-3">
                             <label class="form-label text-muted mb-2">Mevcut Listeden Seçin:</label>
                             <div class="row g-3">
@@ -55,7 +73,8 @@
                                 {
                                     <div class="col-md-4 col-sm-6">
                                         <div class="form-check p-2 border border-secondary rounded custom-checkbox-hover">
-                                            <input class="form-check-input ms-1" type="checkbox" name="selectedFeatureIds" value="@feature.Id" id="feature_@feature.Id">
+                                            <input class="form-check-input ms-1" type="checkbox" name="selectedFeatureIds"
+                                                value="@feature.Id" id="feature_@feature.Id">
                                             <label class="form-check-label ms-2 text-light" for="feature_@feature.Id">
                                                 <i class="@feature.IconClass me-1 text-danger"></i> @feature.Name
                                             </label>
@@ -66,12 +85,17 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="customFeatures" class="form-label text-muted">Listede Yok mu? (Virgülle ayırarak ekleyin)</label>
+                            <label for="customFeatures" class="form-label text-muted">Listede Yok mu? (Virgülle ayırarak
+                                ekleyin)</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-secondary border-secondary text-white"><i class="fas fa-plus"></i></span>
-                                <input type="text" class="form-control bg-dark text-white border-secondary" id="customFeatures" name="customFeatures" placeholder="Örn: Yüzme Havuzu, Masaj Salonu, Vitamin Bar">
+                                <span class="input-group-text bg-secondary border-secondary text-white"><i
+                                        class="fas fa-plus"></i></span>
+                                <input type="text" class="form-control bg-dark text-white border-secondary"
+                                    id="customFeatures" name="customFeatures"
+                                    placeholder="Örn: Yüzme Havuzu, Masaj Salonu, Vitamin Bar">
                             </div>
-                            <div class="form-text text-muted">Eklediğiniz yeni özellikler otomatik olarak sisteme kaydedilecektir.</div>
+                            <div class="form-text text-muted">Eklediğiniz yeni özellikler otomatik olarak sisteme
+                                kaydedilecektir.</div>
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
@@ -84,4 +108,3 @@
         </div>
     </div>
 </div>
-
