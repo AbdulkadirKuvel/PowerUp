@@ -18,9 +18,9 @@
                         <div class="alert alert-danger">
                             <strong>Dikkat!</strong> Bu zaman diliminde kabul edilmiş randevular bulunmaktadır ve bu nedenle silinemez.
                         </div>
-                        <p class="text-muted">Lütfen önce <a href="@Url.Action("Appointments","Trainer")">Randevular</a> sayfasından ilgili randevuları yönetin.</p>
+                        <p class="text-muted">Lütfen önce <a href="@Url.Action(action: "Appointments",controller: "Trainer")">Randevular</a> sayfasından ilgili randevuları yönetin.</p>
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a class="btn btn-primary" href="@Url.Action("Appointments","Trainer")">Randevulara Git</a>
+                            <a class="btn btn-primary" href="@Url.Action(action: "Appointments",controller: "Trainer")">Randevulara Git</a>
                             <a class="btn btn-secondary" asp-action="MySchedule">Geri</a>
                         </div>
                     }

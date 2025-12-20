@@ -6,68 +6,92 @@
     var trainerServices = ViewBag.TrainerServices as List<TrainerService> ?? new List<TrainerService>();
 }
 
-<div class="container-fluid mt-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Yeni Zaman Dilimi Ekle</h5>
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="card border-0" style="border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px 15px 0 0;">
+                    <div class="mb-3">
+                        <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center text-primary shadow-sm" style="width: 70px; height: 70px; font-size: 1.8rem;">
+                            <i class="fas fa-calendar-plus"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-white mb-0">Takvim Planla</h3>
+                    <p class="text-white-50 mb-0">Müsaitlik durumunuzu ve hizmetlerinizi ayarlayın</p>
                 </div>
-                <div class="card-body">
+
+                <div class="card-body p-5">
+
                     @if (!trainerServices.Any())
                     {
-                        <div class="alert alert-warning">
-                            <strong>Uyarı:</strong> Önce hizmet eklemeniz gerekiyor. <a href="@Url.Action("MyServices", "Trainer")">Hizmetleri Yönet</a>
+                        <div class="alert alert-warning border-0 shadow-sm rounded-3 d-flex align-items-center" role="alert">
+                            <i class="fas fa-exclamation-triangle fa-2x me-3 text-warning"></i>
+                            <div>
+                                <h6 class="alert-heading fw-bold mb-1">Hizmet Bulunamadı</h6>
+                                <p class="mb-0">Takvim oluşturmak için önce verdiğiniz hizmetleri tanımlamalısınız. 
+                                    <a href="@Url.Action("MyServices", "Trainer")" class="alert-link">Hizmetleri Yönet</a>
+                                </p>
+                            </div>
                         </div>
                     }
 
                     <form method="post" asp-action="Create">
-                        <!-- Error Messages -->
+                        
                         @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
                         {
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <strong>Hata!</strong>
-                                @foreach (var modelState in ViewData.ModelState.Values)
-                                {
-                                    @foreach (var error in modelState.Errors)
+                            <div class="alert alert-danger rounded-3 mb-4">
+                                <ul class="mb-0 ps-3">
+                                    @foreach (var modelState in ViewData.ModelState.Values)
                                     {
-                                        <div>@error.ErrorMessage</div>
+                                        foreach (var error in modelState.Errors)
+                                        {
+                                            <li>@error.ErrorMessage</li>
+                                        }
                                     }
-                                }
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </ul>
                             </div>
                         }
 
-                        <!-- Slot Type Selection -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <div class="card bg-light border-0">
-                                    <div class="card-body">
-                                        <h6 class="card-title">Zaman Dilimi Türü</h6>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="slotType" id="specificDay" value="specific" checked onchange="updateDaySelection()">
-                                            <label class="form-check-label" for="specificDay">
-                                                <strong>Belirli Bir Gün</strong> - Sadece seçtiğiniz günde uygulanır
-                                            </label>
-                                        </div>
-                                        <div class="form-check mt-2">
-                                            <input class="form-check-input" type="radio" name="slotType" id="everyDay" value="everyday" onchange="updateDaySelection()">
-                                            <label class="form-check-label" for="everyDay">
-                                                <strong>Her Gün</strong> - Hafta boyunca her gün uygulanır
-                                            </label>
-                                        </div>
-                                    </div>
+                        <h6 class="text-muted text-uppercase mb-3 fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;">
+                            <i class="fas fa-history me-2"></i>Tekrarlama Durumu
+                        </h6>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-check custom-radio-card p-3 border rounded-3 bg-light h-100">
+                                    <input class="form-check-input mt-1" type="radio" name="slotType" id="specificDay" value="specific" checked onchange="updateDaySelection()">
+                                    <label class="form-check-label ms-2 cursor-pointer" for="specificDay">
+                                        <span class="d-block fw-bold text-dark">Belirli Bir Gün</span>
+                                        <small class="text-muted">Sadece seçtiğiniz tek bir gün için geçerli olur.</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check custom-radio-card p-3 border rounded-3 bg-light h-100">
+                                    <input class="form-check-input mt-1" type="radio" name="slotType" id="everyDay" value="everyday" onchange="updateDaySelection()">
+                                    <label class="form-check-label ms-2 cursor-pointer" for="everyDay">
+                                        <span class="d-block fw-bold text-dark">Her Gün (Tüm Hafta)</span>
+                                        <small class="text-muted">Haftanın her günü aynı saatte tekrarlanır.</small>
+                                    </label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Day Selection (hidden for everyday) -->
-                        <div class="row mb-4" id="daySelectionDiv">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="dayOfWeek" class="form-label">Gün</label>
-                                    <select class="form-control" id="dayOfWeek" name="dayOfWeek">
-                                        <option value="-1">-- Gün Seçiniz --</option>
+                        <hr class="my-4 text-muted opacity-25">
+
+                        <h6 class="text-muted text-uppercase mb-3 fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;">
+                            <i class="fas fa-clock me-2"></i>Zaman ve Mekan
+                        </h6>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6" id="daySelectionDiv">
+                                <label for="dayOfWeek" class="form-label fw-medium">Gün</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3"><i class="fas fa-calendar-day text-muted"></i></span>
+                                    <select class="form-select bg-light border-start-0 rounded-end-pill" id="dayOfWeek" name="dayOfWeek">
+                                        <option value="-1">-- Seçiniz --</option>
                                         @for (int i = 0; i < days.Length; i++)
                                         {
                                             <option value="@i">@days[i]</option>
@@ -75,17 +99,29 @@
                                     </select>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Gym Selection -->
-                        <div class="row mb-4">
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="gymId" class="form-label">Spor Merkezi</label>
-                                    <select class="form-select" id="gymId" name="gymId" required>
-                                        <option value="0">-- Spor Merkezi Seçiniz --</option>
+                                <label for="hour" class="form-label fw-medium">Saat Aralığı</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3"><i class="fas fa-clock text-muted"></i></span>
+                                    <select class="form-select bg-light border-start-0 rounded-end-pill" id="hour" name="hour" required>
+                                        <option value="-1">-- Seçiniz --</option>
+                                        @for (int h = 0; h < 24; h++)
+                                        {
+                                            <option value="@h">@h:00 - @(h + 1):00</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="gymId" class="form-label fw-medium">Spor Salonu</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3"><i class="fas fa-dumbbell text-muted"></i></span>
+                                    <select class="form-select bg-light border-start-0 rounded-end-pill" id="gymId" name="gymId" required>
+                                        <option value="0">-- Seçiniz --</option>
                                         @{
-                                            var gym = ViewBag.TrainerGym;
+                                            dynamic? gym = ViewBag.TrainerGym;
                                             if (gym != null)
                                             {
                                                 <option value="@gym.Id" selected>@gym.Name</option>
@@ -96,46 +132,43 @@
                             </div>
                         </div>
 
-                        <!-- Hour Selection -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="hour" class="form-label">Saat (1 Saatlik Oturum)</label>
-                                    <select class="form-select" id="hour" name="hour" required>
-                                        <option value="-1">-- Saat Seçiniz --</option>
-                                        @for (int h = 0; h < 24; h++)
-                                        {
-                                            <option value="@h">@h:00 - @(h + 1):00</option>
-                                        }
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Services Selection -->
                         @if (trainerServices.Any())
                         {
-                            <div class="mb-4">
-                                <label class="form-label"><strong>Hizmetler</strong> *</label>
-                                <div class="border p-3 rounded" style="max-height: 300px; overflow-y: auto; background-color: #f8f9fa;">
-                                    @foreach (var service in trainerServices)
-                                    {
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="selectedServices" id="service_@service.ServiceId" value="@service.ServiceId">
-                                            <label class="form-check-label" for="service_@service.ServiceId">
-                                                @service.Service?.Name
-                                            </label>
-                                        </div>
-                                    }
+                            <h6 class="text-muted text-uppercase mb-3 fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;">
+                                <i class="fas fa-clipboard-list me-2"></i>Bu Saatte Verilecek Hizmetler
+                            </h6>
+                            
+                            <div class="card bg-light border-0 mb-4">
+                                <div class="card-body p-3" style="max-height: 250px; overflow-y: auto;">
+                                    <div class="d-flex flex-column gap-2">
+                                        @foreach (TrainerService service in trainerServices)
+                                        {
+                                            <div class="form-check service-item p-2 rounded bg-white border">
+                                                <input class="form-check-input ms-1 mt-2" type="checkbox" name="selectedServices" id="service_@service.ServiceId" value="@service.ServiceId">
+                                                <label class="form-check-label ms-2 w-100 cursor-pointer" for="service_@service.ServiceId">
+                                                    <span class="fw-medium text-dark">@service.Service?.Name</span>
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
-                                <small class="text-muted">En az bir hizmet seçmelisiniz</small>
+                                <div class="card-footer bg-transparent border-0 pt-0">
+                                    <small class="text-muted"><i class="fas fa-info-circle me-1"></i>En az bir hizmet seçmelisiniz.</small>
+                                </div>
                             </div>
                         }
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-success" @(trainerServices.Any() ? "" : "disabled")>Ekle</button>
-                            <a class="btn btn-secondary" asp-action="MySchedule">İptal</a>
+                        <div class="d-flex gap-3 justify-content-end mt-4">
+                            <a class="btn btn-light border px-4 rounded-pill" asp-action="MySchedule">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill" 
+                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);"
+                                    @(trainerServices.Any() ? "" : "disabled")>
+                                <i class="fas fa-save me-2"></i>Kaydet
+                            </button>
                         </div>
+
                     </form>
                 </div>
             </div>
@@ -143,19 +176,69 @@
     </div>
 </div>
 
+<style>
+    /* Form elemanları odaklanma */
+    .form-control:focus, .form-select:focus {
+        background-color: #fff !important;
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .input-group:focus-within .input-group-text {
+        background-color: #fff !important;
+        border-color: #667eea;
+        color: #667eea !important; /* İkon rengi değişsin */
+    }
+
+    .input-group-text {
+        transition: all 0.3s ease;
+    }
+
+    /* Radio Card Hover Efekti */
+    .custom-radio-card {
+        transition: all 0.2s ease;
+        border: 1px solid #dee2e6;
+    }
+    
+    .custom-radio-card:hover {
+        border-color: #667eea;
+        background-color: #fff !important;
+    }
+
+    /* Seçili Radio Card */
+    .form-check-input:checked + .form-check-label {
+        color: #667eea;
+    }
+    
+    /* Hizmet Listesi Hover */
+    .service-item:hover {
+        background-color: #f8f9fa !important;
+        border-color: #667eea !important;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+</style>
+
 <script>
 function updateDaySelection() {
     const isEveryDay = document.getElementById('everyDay').checked;
-    document.getElementById('daySelectionDiv').style.display = isEveryDay ? 'none' : 'flex';
+    const dayDiv = document.getElementById('daySelectionDiv');
+    const daySelect = document.getElementById('dayOfWeek');
     
     if (isEveryDay) {
-        document.getElementById('dayOfWeek').removeAttribute('required');
+        dayDiv.style.display = 'none';
+        daySelect.removeAttribute('required');
     } else {
-        document.getElementById('dayOfWeek').setAttribute('required', 'required');
+        // Flex yerine display block veya varsayılan grid davranışı için null/block kullanabiliriz
+        // Bootstrap col class'ı olduğu için display:block yeterlidir (grid yapısını bozmaz)
+        dayDiv.style.display = 'block'; 
+        daySelect.setAttribute('required', 'required');
     }
 }
 
-// Initialize on page load
+// Sayfa yüklendiğinde çalıştır
 document.addEventListener('DOMContentLoaded', function() {
     updateDaySelection();
 });

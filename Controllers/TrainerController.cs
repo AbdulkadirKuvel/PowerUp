@@ -375,10 +375,10 @@ public class TrainerController(ApplicationDbContext context, UserManager<Applica
         }
 
         // Delete associated schedule slots
-        _context.ScheduleSlots.RemoveRange(trainer.ScheduleSlots ?? new List<ScheduleSlot>());
+        _context.ScheduleSlots.RemoveRange(trainer.ScheduleSlots ?? []);
 
         // Delete associated trainer services
-        _context.TrainerServices.RemoveRange(trainer.TrainerServices ?? new List<TrainerService>());
+        _context.TrainerServices.RemoveRange(trainer.TrainerServices ?? []);
 
         // Delete the trainer
         _context.Trainers.Remove(trainer);

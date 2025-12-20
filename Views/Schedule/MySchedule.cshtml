@@ -3,25 +3,31 @@
 @model List<ScheduleSlot>
 
 @{
-    ViewData["Title"] = "Haftalık Programım";
+    ViewData[index: "Title"] = "Haftalık Programım";
     string[] days = { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
-    
+
     // Group slots by day
-    var slotsByDay = new List<ScheduleSlot>[7];
+    List<ScheduleSlot>[]? slotsByDay = new List<ScheduleSlot>[7];
     for (int i = 0; i < 7; i++) slotsByDay[i] = new List<ScheduleSlot>();
-    
-    foreach (var slot in Model)
+
+    foreach (ScheduleSlot slot in Model)
     {
         slotsByDay[slot.DayOfWeek].Add(slot);
     }
-    
+
     // Find the hour range
     int startHour = Model.Any() ? Model.Min(s => s.Hour) : 6;
     int endHour = Model.Any() ? Model.Max(s => s.Hour) : 22;
-    
+
     // Ensure reasonable bounds
     startHour = Math.Max(0, startHour - 1);
     endHour = Math.Min(23, endHour + 1);
+
+    @* dynamic? acceptedAppointments = ViewBag.acceptedAppointments;
+    dynamic? waitingAppointments = ViewBag.waitingAppointments; *@
+
+    dynamic? trainerId = ViewBag.trainerId;
+
 }
 
 <div class="container-fluid mt-5 px-0">
@@ -43,7 +49,7 @@
     else
     {
 
-        
+
         <div class="schedule-container">
             <div class="schedule-grid">
                 <!-- Header row with day names -->
@@ -52,21 +58,21 @@
                 {
                     <div class="schedule-cell schedule-header-day">@days[day]</div>
                 }
-                
+
                 <!-- Time rows -->
                 @for (int hour = startHour; hour < endHour; hour++)
                 {
                     <div class="schedule-cell schedule-header-time">@hour:00</div>
-                    
+
                     @for (int day = 0; day < 7; day++)
                     {
                         <div class="schedule-cell">
                             @{
-                                var slotsForCell = slotsByDay[day]
-                                    .Where(s => s.Hour == hour)
-                                    .ToList();
+                                List<ScheduleSlot>? slotsForCell = slotsByDay[day]
+                                .Where(s => s.Hour == hour)
+                                .ToList();
                             }
-                            
+
                             @foreach (var slot in slotsForCell)
                             {
                                 <div class="slot-block" title="@slot.Hour:00 - @(slot.Hour + 1):00 - @slot.Gym?.Name">
@@ -74,12 +80,15 @@
                                     <div style="font-size: 10px; margin-top: 2px;">
                                         @if (slot.ScheduleSlotServices?.Count > 0)
                                         {
-                                            <span>@string.Join(", ", slot.ScheduleSlotServices.Take(2).Select(ss => ss.Service?.Name ?? ""))</span>
-                                        }
+                                            <span>@string.Join(separator: ", ", slot.ScheduleSlotServices.Take(count: 2).Select(ss => ss.Service?.Name
+                                                                            ?? ""))</span>
+                                                }
                                     </div>
                                     <div class="slot-actions">
-                                        <a class="btn btn-warning slot-action-btn" asp-action="Edit" asp-route-id="@slot.Id" title="Düzenle">✎</a>
-                                        <a class="btn btn-danger slot-action-btn" href="#" title="Sil" onclick="showSlotDelete(@slot.Id, '@Url.Action("Delete", "Schedule", new { id = slot.Id })'); return false;">✕</a>
+                                        <a class="btn btn-warning slot-action-btn" asp-action="Edit" asp-route-id="@slot.Id"
+                                            title="Düzenle">✎</a>
+                                        <a class="btn btn-danger slot-action-btn" asp-action="Delete" asp-route-id="@slot.Id"
+                                            title="Sil">✕</a>
                                     </div>
                                 </div>
                             }
@@ -90,21 +99,3 @@
         </div>
     }
 </div>
-
-@section Scripts {
-    <script>
-        function showSlotDelete(slotId, url) {
-            window.DialogBox.show({
-                type: 'warning',
-                title: 'Zaman Dilimini Sil',
-                message: 'Bu işlem geri alınamaz. Onay kutusunu işaretleyip "Evet" butonuna basınız.',
-                checkbox: { label: 'Evet, silmek istediğimi onaylıyorum' },
-                buttons: [
-                    { text: 'İptal', action: () => window.DialogBox.close(), isPrimary: false },
-                    { text: 'Evet', action: () => { window.location.href = url; }, isPrimary: true }
-                ]
-            });
-        }
-    </script>
-}
-

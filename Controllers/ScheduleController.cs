@@ -37,6 +37,16 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
             .ThenBy(s => s.Hour)
             .ToListAsync();
 
+        // var acceptedAppointments = await _context.Appointments
+        //     .Where(a => a.TrainerId == trainer.Id && a.Status == 1)
+        //     .ToListAsync();
+
+        // var waitingAppointments = await _context.Appointments
+        //     .Where(a => a.TrainerId == trainer.Id && a.Status == 0)
+        //     .ToListAsync();
+
+        ViewBag.trainerId = trainer.Id;
+
         return View(slots);
     }
 
@@ -57,91 +67,202 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
         if (trainer == null)
             return RedirectToAction("Index", "Home");
 
-        ViewBag.TrainerServices = trainer.TrainerServices ?? new List<TrainerService>();
+        ViewBag.TrainerServices = trainer.TrainerServices ?? [];
         ViewBag.TrainerGym = trainer.Gym;
         ViewBag.GymId = trainer.GymId;
         return View();
     }
+    // [HttpPost]
+    // [Authorize(Roles = Roles.RoleTrainer)]
+    // public async Task<IActionResult> Create(string slotType, int? dayOfWeek, int hour, int? gymId, int[] selectedServices)
+    // {
+    //     var user = await _userManager.GetUserAsync(User);
+
+    //     // slotType: "specific" or "everyday"
+    //     if (slotType != "specific" && slotType != "everyday")
+    //     {
+    //         ModelState.AddModelError("slotType", "Lütfen geçerli bir seçim yapınız.");
+    //     }
+
+    //     if (slotType == "specific" && (dayOfWeek == null || dayOfWeek < 0 || dayOfWeek > 6))
+    //     {
+    //         ModelState.AddModelError("dayOfWeek", "Lütfen geçerli bir gün seçiniz.");
+    //     }
+
+    //     if (hour < 0 || hour > 23)
+    //     {
+    //         ModelState.AddModelError("hour", "Lütfen geçerli bir saat seçiniz.");
+    //     }
+
+    //     if (gymId == null || gymId <= 0)
+    //     {
+    //         ModelState.AddModelError("gymId", "Lütfen spor merkezini seçiniz.");
+    //     }
+
+    //     if (selectedServices == null || selectedServices.Length == 0)
+    //     {
+    //         ModelState.AddModelError("selectedServices", "Lütfen en az bir hizmet seçiniz.");
+    //     }
+
+    //     if (!ModelState.IsValid)
+    //     {
+    //         var trainerForError = await _context.Trainers
+    //             .Include(t => t.TrainerServices)
+    //             .ThenInclude(ts => ts.Service)
+    //             .Include(t => t.Gym)
+    //             .FirstOrDefaultAsync(t => t.ApplicationUserId == user!.Id);
+
+    //         ViewBag.TrainerServices = trainerForError?.TrainerServices ?? [];
+    //         ViewBag.TrainerGym = trainerForError?.Gym;
+    //         ViewBag.GymId = trainerForError?.GymId;
+    //         return View();
+    //     }
+
+    //     if (user == null)
+    //         return RedirectToAction("Index", "Home");
+
+    //     var trainer = await _context.Trainers
+    //         .Include(t => t.Gym)
+    //         .FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
+    //     if (trainer == null)
+    //         return RedirectToAction("Index", "Home");
+
+    //     var daysToCreate = slotType == "everyday" ? [0, 1, 2, 3, 4, 5, 6] : new[] { dayOfWeek!.Value };
+
+    //     foreach (var day in daysToCreate)
+    //     {
+    //         var slot = new ScheduleSlot
+    //         {
+    //             TrainerId = trainer.Id,
+    //             GymId = gymId!.Value,
+    //             DayOfWeek = day,
+    //             Hour = hour,
+    //             IsWeekly = false
+    //         };
+
+    //         _context.ScheduleSlots.Add(slot);
+    //         await _context.SaveChangesAsync();
+
+    //         // Add services to the schedule slot
+    //         foreach (var serviceId in selectedServices!)
+    //         {
+    //             var slotService = new ScheduleSlotService
+    //             {
+    //                 ScheduleSlotId = slot.Id,
+    //                 ServiceId = serviceId
+    //             };
+    //             _context.ScheduleSlotServices.Add(slotService);
+    //         }
+    //     }
+
+    //     await _context.SaveChangesAsync();
+    //     return RedirectToAction("MySchedule");
+    // }
+
     [HttpPost]
     [Authorize(Roles = Roles.RoleTrainer)]
     public async Task<IActionResult> Create(string slotType, int? dayOfWeek, int hour, int? gymId, int[] selectedServices)
     {
         var user = await _userManager.GetUserAsync(User);
-        
-        // slotType: "specific" or "everyday"
+
+        // --- 1. Temel Validasyonlar ---
         if (slotType != "specific" && slotType != "everyday")
-        {
             ModelState.AddModelError("slotType", "Lütfen geçerli bir seçim yapınız.");
-        }
 
         if (slotType == "specific" && (dayOfWeek == null || dayOfWeek < 0 || dayOfWeek > 6))
-        {
             ModelState.AddModelError("dayOfWeek", "Lütfen geçerli bir gün seçiniz.");
-        }
 
         if (hour < 0 || hour > 23)
-        {
             ModelState.AddModelError("hour", "Lütfen geçerli bir saat seçiniz.");
-        }
 
         if (gymId == null || gymId <= 0)
-        {
             ModelState.AddModelError("gymId", "Lütfen spor merkezini seçiniz.");
-        }
 
         if (selectedServices == null || selectedServices.Length == 0)
-        {
             ModelState.AddModelError("selectedServices", "Lütfen en az bir hizmet seçiniz.");
+
+        // --- 2. SAAT KONTROLÜ (YENİ EKLENEN KISIM) ---
+        if (ModelState.IsValid) // Temel formatlar doğruysa mantıksal kontrolü yap
+        {
+            var targetGym = await _context.Gyms.FindAsync(gymId);
+            if (targetGym != null)
+            {
+                // Seçilen saat (TimeSpan formatında)
+                TimeSpan selectedStart = TimeSpan.FromHours(hour);
+                TimeSpan selectedEnd = TimeSpan.FromHours(hour + 1); // 1 saatlik seans varsayımı
+
+                // Kontrol: Başlangıç açılıştan önce mi? VEYA Bitiş kapanıştan sonra mı?
+                if (selectedStart < targetGym.OpeningTime || selectedEnd > targetGym.ClosingTime)
+                {
+                    string openStr = targetGym.OpeningTime.ToString(@"hh\:mm");
+                    string closeStr = targetGym.ClosingTime.ToString(@"hh\:mm");
+
+                    ModelState.AddModelError("hour",
+                        $"Seçilen saat ({hour}:00 - {hour + 1}:00), salonun çalışma saatleri ({openStr} - {closeStr}) dışındadır.");
+                }
+            }
         }
 
+        // --- 3. Hata Varsa View'i Tekrar Doldur ---
         if (!ModelState.IsValid)
         {
+            // Kullanıcıyı ve Trainer detaylarını tekrar çekiyoruz (Dropdownlar için)
             var trainerForError = await _context.Trainers
                 .Include(t => t.TrainerServices)
                 .ThenInclude(ts => ts.Service)
                 .Include(t => t.Gym)
                 .FirstOrDefaultAsync(t => t.ApplicationUserId == user!.Id);
-            
-            ViewBag.TrainerServices = trainerForError?.TrainerServices ?? new List<TrainerService>();
+
+            ViewBag.TrainerServices = trainerForError?.TrainerServices ?? [];
             ViewBag.TrainerGym = trainerForError?.Gym;
             ViewBag.GymId = trainerForError?.GymId;
+
+            // Eğer veritabanından Gym çekildiyse hata mesajını view'da göstermek için geri yolladık
             return View();
         }
 
-        if (user == null)
-            return RedirectToAction("Index", "Home");
+        if (user == null) return RedirectToAction("Index", "Home");
 
         var trainer = await _context.Trainers
             .Include(t => t.Gym)
             .FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
-        if (trainer == null)
-            return RedirectToAction("Index", "Home");
 
-        var daysToCreate = slotType == "everyday" ? new[] { 0, 1, 2, 3, 4, 5, 6 } : new[] { dayOfWeek!.Value };
+        if (trainer == null) return RedirectToAction("Index", "Home");
+
+        // --- 4. Kayıt İşlemi ---
+        var daysToCreate = slotType == "everyday" ? [0, 1, 2, 3, 4, 5, 6] : new[] { dayOfWeek!.Value };
 
         foreach (var day in daysToCreate)
         {
-            var slot = new ScheduleSlot
-            {
-                TrainerId = trainer.Id,
-                GymId = gymId!.Value,
-                DayOfWeek = day,
-                Hour = hour,
-                IsWeekly = false
-            };
+            // Çakışma kontrolü (Opsiyonel ama önerilir: Aynı güne ve saate zaten kayıt var mı?)
+            bool isDuplicate = await _context.ScheduleSlots.AnyAsync(s =>
+                s.TrainerId == trainer.Id &&
+                s.DayOfWeek == day &&
+                s.Hour == hour);
 
-            _context.ScheduleSlots.Add(slot);
-            await _context.SaveChangesAsync();
-
-            // Add services to the schedule slot
-            foreach (var serviceId in selectedServices!)
+            if (!isDuplicate)
             {
-                var slotService = new ScheduleSlotService
+                var slot = new ScheduleSlot
                 {
-                    ScheduleSlotId = slot.Id,
-                    ServiceId = serviceId
+                    TrainerId = trainer.Id,
+                    GymId = gymId!.Value,
+                    DayOfWeek = day,
+                    Hour = hour,
+                    IsWeekly = false // Veya formdan geliyorsa formdan al
                 };
-                _context.ScheduleSlotServices.Add(slotService);
+
+                _context.ScheduleSlots.Add(slot);
+                await _context.SaveChangesAsync(); // Slot Id oluşması için save şart
+
+                foreach (var serviceId in selectedServices!)
+                {
+                    var slotService = new ScheduleSlotService
+                    {
+                        ScheduleSlotId = slot.Id,
+                        ServiceId = serviceId
+                    };
+                    _context.ScheduleSlotServices.Add(slotService);
+                }
             }
         }
 
@@ -179,6 +300,71 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
         return View(schedule);
     }
 
+    // [HttpPost]
+    // [Authorize(Roles = Roles.RoleTrainer)]
+    // public async Task<IActionResult> Edit(int id, int dayOfWeek, int hour, int? gymId, bool isWeekly, int[] selectedServices)
+    // {
+    //     var schedule = await _context.ScheduleSlots
+    //         .Include(s => s.ScheduleSlotServices)
+    //         .FirstOrDefaultAsync(s => s.Id == id);
+    //     if (schedule == null)
+    //         return NotFound();
+
+    //     if (selectedServices == null || selectedServices.Length == 0)
+    //     {
+    //         ModelState.AddModelError("", "Lütfen en az bir hizmet seçiniz.");
+    //         return View(schedule);
+    //     }
+
+    //     if (hour < 0 || hour > 23)
+    //     {
+    //         ModelState.AddModelError("", "Lütfen geçerli bir saat seçiniz.");
+    //         return View(schedule);
+    //     }
+
+    //     if (gymId == null || gymId <= 0)
+    //     {
+    //         ModelState.AddModelError("", "Lütfen spor merkezini seçiniz.");
+    //         return View(schedule);
+    //     }
+
+    //     var user = await _userManager.GetUserAsync(User);
+    //     if (user == null)
+    //         return RedirectToAction("Index", "Home");
+
+    //     var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
+
+    //     if (trainer?.Id != schedule.TrainerId)
+    //         return Forbid();
+
+    //     schedule.DayOfWeek = dayOfWeek;
+    //     schedule.Hour = hour;
+    //     schedule.GymId = gymId.Value;
+    //     schedule.IsWeekly = isWeekly;
+    //     schedule.UpdatedAt = DateTime.Now;
+
+    //     // Update services
+    //     if (schedule.ScheduleSlotServices != null && schedule.ScheduleSlotServices.Any())
+    //     {
+    //         _context.ScheduleSlotServices.RemoveRange(schedule.ScheduleSlotServices);
+    //     }
+
+    //     foreach (var serviceId in selectedServices)
+    //     {
+    //         var slotService = new ScheduleSlotService
+    //         {
+    //             ScheduleSlotId = schedule.Id,
+    //             ServiceId = serviceId
+    //         };
+    //         _context.ScheduleSlotServices.Add(slotService);
+    //     }
+
+    //     _context.ScheduleSlots.Update(schedule);
+    //     await _context.SaveChangesAsync();
+
+    //     return RedirectToAction("MySchedule");
+    // }
+
     [HttpPost]
     [Authorize(Roles = Roles.RoleTrainer)]
     public async Task<IActionResult> Edit(int id, int dayOfWeek, int hour, int? gymId, bool isWeekly, int[] selectedServices)
@@ -186,56 +372,81 @@ public class ScheduleController(ApplicationDbContext context, UserManager<Applic
         var schedule = await _context.ScheduleSlots
             .Include(s => s.ScheduleSlotServices)
             .FirstOrDefaultAsync(s => s.Id == id);
-        if (schedule == null)
-            return NotFound();
 
+        if (schedule == null) return NotFound();
+
+        // --- Validasyonlar ---
         if (selectedServices == null || selectedServices.Length == 0)
-        {
             ModelState.AddModelError("", "Lütfen en az bir hizmet seçiniz.");
-            return View(schedule);
-        }
 
         if (hour < 0 || hour > 23)
-        {
             ModelState.AddModelError("", "Lütfen geçerli bir saat seçiniz.");
-            return View(schedule);
-        }
 
         if (gymId == null || gymId <= 0)
-        {
             ModelState.AddModelError("", "Lütfen spor merkezini seçiniz.");
+
+        // --- SAAT KONTROLÜ (YENİ) ---
+        if (ModelState.IsValid)
+        {
+            var targetGym = await _context.Gyms.FindAsync(gymId);
+            if (targetGym != null)
+            {
+                TimeSpan selectedStart = TimeSpan.FromHours(hour);
+                TimeSpan selectedEnd = TimeSpan.FromHours(hour + 1);
+
+                if (selectedStart < targetGym.OpeningTime || selectedEnd > targetGym.ClosingTime)
+                {
+                    string openStr = targetGym.OpeningTime.ToString(@"hh\:mm");
+                    string closeStr = targetGym.ClosingTime.ToString(@"hh\:mm");
+                    ModelState.AddModelError("", $"Seçilen saat, salonun çalışma saatleri ({openStr} - {closeStr}) dışındadır.");
+                }
+            }
+        }
+
+        // --- Hata Varsa Geri Dön ---
+        if (!ModelState.IsValid)
+        {
+            // ViewBag verilerini tekrar doldurmalıyız, aksi takdirde edit sayfasındaki dropdownlar patlar.
+            var userCheck = await _userManager.GetUserAsync(User);
+            var trainerCheck = await _context.Trainers
+                .Include(t => t.TrainerServices).ThenInclude(ts => ts.Service)
+                .Include(t => t.Gym)
+                .FirstOrDefaultAsync(t => t.ApplicationUserId == userCheck!.Id);
+
+            ViewBag.TrainerServices = trainerCheck?.TrainerServices ?? new List<TrainerService>();
+            ViewBag.TrainerGym = trainerCheck?.Gym;
+            ViewBag.GymId = trainerCheck?.GymId;
+            ViewBag.SelectedServiceIds = selectedServices?.ToList() ?? new List<int>(); // Formdan gelenleri seçili yap
+
             return View(schedule);
         }
 
         var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return RedirectToAction("Index", "Home");
+        if (user == null) return RedirectToAction("Index", "Home");
 
         var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.ApplicationUserId == user.Id);
+        if (trainer?.Id != schedule.TrainerId) return Forbid();
 
-        if (trainer?.Id != schedule.TrainerId)
-            return Forbid();
-
+        // --- Güncelleme ---
         schedule.DayOfWeek = dayOfWeek;
         schedule.Hour = hour;
-        schedule.GymId = gymId.Value;
+        schedule.GymId = gymId!.Value;
         schedule.IsWeekly = isWeekly;
         schedule.UpdatedAt = DateTime.Now;
 
-        // Update services
-        if (schedule.ScheduleSlotServices != null && schedule.ScheduleSlotServices.Any())
+        // Hizmetleri güncelle
+        if (schedule.ScheduleSlotServices != null)
         {
             _context.ScheduleSlotServices.RemoveRange(schedule.ScheduleSlotServices);
         }
-        
-        foreach (var serviceId in selectedServices)
+
+        foreach (var serviceId in selectedServices!)
         {
-            var slotService = new ScheduleSlotService
+            _context.ScheduleSlotServices.Add(new ScheduleSlotService
             {
                 ScheduleSlotId = schedule.Id,
                 ServiceId = serviceId
-            };
-            _context.ScheduleSlotServices.Add(slotService);
+            });
         }
 
         _context.ScheduleSlots.Update(schedule);
