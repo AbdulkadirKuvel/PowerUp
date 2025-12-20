@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PowerUp</title>
+    <title>@ViewData[index: "Title"] - PowerUp</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="~/PowerUp.styles.css" asp-append-version="true" />
 </head>
 
-<body>
+<body class="dark-theme">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -76,11 +76,22 @@
                     </a>
                 </div>
                 <div class="sidebar-buttons">
-                    <a href="@Url.Action(action: "MyAppointments", controller: "Account")" class="btn btn-sm"
-                        title="Randevularım">
-                        <i class="fas fa-calendar"></i>
-                        <span>Randevular</span>
-                    </a>
+                    @if (User.IsInRole(role: "Trainer"))
+                    {
+                        <a href="@Url.Action(action: "Appointments", controller: "Trainer")" class="btn btn-sm"
+                            title="Randevularım">
+                            <i class="fas fa-calendar"></i>
+                            <span>Randevular</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action(action: "MyAppointments", controller: "Account")" class="btn btn-sm"
+                            title="Randevularım">
+                            <i class="fas fa-calendar"></i>
+                            <span>Randevular</span>
+                        </a>
+                    }
                 </div>
                 @if (User.IsInRole(role: "Admin"))
                 {
@@ -99,7 +110,7 @@
                     </div>
                 }
                 <div class="sidebar-buttons">
-                    <a href="@Url.Action(action: "Lcontroller: ogout", "Account")" class="btn btn-sm" title="Çıkış">
+                    <a href="@Url.Action(action: "Logout", controller: "Account")" class="btn btn-sm" title="Çıkış">
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Çıkış</span>
                     </a>
@@ -110,7 +121,8 @@
         {
             <div class="sidebar-divider"></div>
             <div class="sidebar-user-section">
-                <a href="@Url.Action("Login", "Account")" class="btn btn-sm btn-block" style="width: 100%; display: block;">
+                <a href="@Url.Action(action: "Login", controller: "Account")" class="btn btn-sm btn-block"
+                    style="width: 100%; display: block;">
                     <i class="fas fa-sign-in-alt"></i>
                     <span>Giriş Yap</span>
                 </a>
@@ -150,7 +162,7 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/dialogbox.js"></script>
 
-    <script>
+    @* <script>
         // Sidebar Toggle
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
@@ -204,6 +216,82 @@
             if (window.innerWidth > 768) {
                 sidebar.classList.remove('mobile-expanded');
             }
+        });
+    </script> *@
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const topbarToggle = document.getElementById('topbarToggle');
+
+            // =========================================================
+            // 1. BAŞLANGIÇ AYARLARI (Hafıza İptal Edildi)
+            // =========================================================
+
+            // Masaüstündeysen her zaman "collapsed" sınıfını siliyoruz.
+            // Bu sayede sayfa yenilense bile sidebar hep GENİŞ başlar.
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('collapsed');
+                // İsterseniz hafızayı da temizleyelim ki kafa karışıklığı olmasın
+                localStorage.removeItem('sidebarCollapsed');
+            }
+
+            // =========================================================
+            // 2. MASAÜSTÜ TOGGLE (Aç/Kapa Butonu)
+            // =========================================================
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', () => {
+                    if (window.innerWidth > 768) {
+                        sidebar.classList.toggle('collapsed');
+                        // Not: Buradaki durumu kaydetmiyoruz (localStorage yok),
+                        // böylece sayfa yenilenince tekrar geniş hale dönecek.
+                    }
+                });
+            }
+
+            // =========================================================
+            // 3. MOBİL MENÜ İŞLEMLERİ
+            // =========================================================
+            if (topbarToggle) {
+                topbarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('mobile-expanded');
+                });
+            }
+
+            // Ekranda boş bir yere tıklayınca mobilde menüyü kapat (Opsiyonel UX iyileştirmesi)
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768) {
+                    // Tıklanan yer sidebar veya toggle butonu değilse kapat
+                    if (!sidebar.contains(e.target) && !topbarToggle.contains(e.target)) {
+                        sidebar.classList.remove('mobile-expanded');
+                    }
+                }
+            });
+
+            // =========================================================
+            // 4. AKTİF LİNK SEÇİMİ (Kırmızı Yanması İçin)
+            // =========================================================
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href !== '#' && (currentPath.includes(href) || (href === '/' && currentPath === '/'))) {
+                    // Sadece tam eşleşme veya alt klasör mantığı
+                    link.classList.add('active');
+                }
+            });
+
+            // =========================================================
+            // 5. EKRAN BOYUTU DEĞİŞİNCE DÜZELTME
+            // =========================================================
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    // Masaüstüne geçince mobil sınıfını temizle
+                    sidebar.classList.remove('mobile-expanded');
+                    // Masaüstüne geçince sidebar'ı genişlet (Tercihe bağlı, geniş kalması için)
+                    sidebar.classList.remove('collapsed');
+                }
+            });
         });
     </script>
 
