@@ -38,10 +38,8 @@ public class GymController(ApplicationDbContext context) : Controller
     [Authorize(Roles = Roles.RoleAdmin)]
     public async Task<IActionResult> Create()
     {
-        // Veritabanından özellikleri çekip ViewBag'e atıyoruz
         var features = await _context.GymFeatures.ToListAsync();
 
-        // Eğer veritabanı boşsa bile features boş bir liste olarak gelir, null gelmez.
         ViewBag.AvailableFeatures = features;
 
         return View();
@@ -49,11 +47,10 @@ public class GymController(ApplicationDbContext context) : Controller
 
     [HttpPost]
     [Authorize(Roles = Roles.RoleAdmin)]
-    public async Task<IActionResult> Create(Gym gym, List<int> selectedFeatureIds, string? customFeatures) // <-- Bu parametreler VAR MI?
+    public async Task<IActionResult> Create(Gym gym, List<int> selectedFeatureIds, string? customFeatures)
     {
         if (ModelState.IsValid)
         {
-            // 1. Checkbox'tan seçilenleri ekleyen kısım BURASI
             if (selectedFeatureIds != null)
             {
                 var featuresToAdd = await _context.GymFeatures
@@ -66,10 +63,8 @@ public class GymController(ApplicationDbContext context) : Controller
                 }
             }
 
-            // 2. Özel yazılanları ekleyen kısım
             if (!string.IsNullOrWhiteSpace(customFeatures))
             {
-                // ... (önceki cevaptaki kodlar)
                 var customNames = customFeatures.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 foreach (var name in customNames)
                 {
@@ -84,7 +79,6 @@ public class GymController(ApplicationDbContext context) : Controller
             return RedirectToAction("List");
         }
 
-        // Hata varsa listeyi tekrar doldur
         ViewBag.AvailableFeatures = await _context.GymFeatures.ToListAsync();
         return View(gym);
     }
@@ -92,7 +86,6 @@ public class GymController(ApplicationDbContext context) : Controller
     [Authorize(Roles = Roles.RoleAdmin)]
     public async Task<IActionResult> Edit(int id)
     {
-        // 1. Gym'i özellikleri (Features) ile birlikte çekiyoruz
         var gym = await _context.Gyms
             .Include(g => g.Features)
             .FirstOrDefaultAsync(g => g.Id == id);
@@ -100,7 +93,6 @@ public class GymController(ApplicationDbContext context) : Controller
         if (gym == null)
             return NotFound();
 
-        // 2. Tüm özellikleri checkbox listesi için ViewBag'e atıyoruz
         ViewBag.AvailableFeatures = await _context.GymFeatures.ToListAsync();
 
         return View(gym);
@@ -115,23 +107,22 @@ public class GymController(ApplicationDbContext context) : Controller
 
         if (ModelState.IsValid)
         {
-            // 1. Veritabanındaki asıl kaydı (ilişkileriyle beraber) çekiyoruz
             var gymToUpdate = await _context.Gyms
                 .Include(g => g.Features)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (gymToUpdate == null) return NotFound();
 
-            // 2. Temel bilgileri güncelliyoruz
             gymToUpdate.Name = gym.Name;
             gymToUpdate.Address = gym.Address;
             gymToUpdate.MonthlyPrice = gym.MonthlyPrice;
             gymToUpdate.AnnuallyPrice = gym.AnnuallyPrice;
 
-            // 3. Mevcut özellikleri temizliyoruz (Sıfırdan set edeceğiz)
+            gymToUpdate.OpeningTime = gym.OpeningTime;
+            gymToUpdate.ClosingTime = gym.ClosingTime;
+
             gymToUpdate.Features.Clear();
 
-            // 4. Checkbox'tan seçilenleri ekle
             if (selectedFeatureIds != null)
             {
                 var featuresToAdd = await _context.GymFeatures
@@ -144,7 +135,6 @@ public class GymController(ApplicationDbContext context) : Controller
                 }
             }
 
-            // 5. Yeni (Custom) yazılanları ekle
             if (!string.IsNullOrWhiteSpace(customFeatures))
             {
                 var customNames = customFeatures.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -154,13 +144,11 @@ public class GymController(ApplicationDbContext context) : Controller
 
                     if (existingFeature != null)
                     {
-                        // Zaten varsa ve listede seçili değilse ekle
                         if (!gymToUpdate.Features.Contains(existingFeature))
                             gymToUpdate.Features.Add(existingFeature);
                     }
                     else
                     {
-                        // Yoksa yeni oluştur
                         gymToUpdate.Features.Add(new GymFeature { Name = name });
                     }
                 }
@@ -178,7 +166,6 @@ public class GymController(ApplicationDbContext context) : Controller
             return RedirectToAction("List");
         }
 
-        // Hata varsa listeyi tekrar doldur
         ViewBag.AvailableFeatures = await _context.GymFeatures.ToListAsync();
         return View(gym);
     }
@@ -187,9 +174,8 @@ public class GymController(ApplicationDbContext context) : Controller
     [HttpGet]
     public async Task<IActionResult> CheckDeleteStatus(int id)
     {
-        // Salonu ve içindeki antrenörleri getiriyoruz
         var gym = await _context.Gyms
-            .Include(g => g.Trainers) // İlişkili veriyi çekmeyi unutma
+            .Include(g => g.Trainers)
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (gym == null)
@@ -208,22 +194,6 @@ public class GymController(ApplicationDbContext context) : Controller
             gymName = gym.Name
         });
     }
-
-    // [Authorize(Roles = Roles.RoleAdmin)]
-    // public async Task<IActionResult> Delete(int id)
-    // {
-    //     var gym = await _context.Gyms.FindAsync(id);
-    //     if (gym == null)
-    //         return NotFound();
-    //     ViewBag.acceptedAppointments = 0;
-    //     ViewBag.requestedAppointments = 0;
-    //     foreach (var trainer in gym.Trainers)
-    //     {
-    //         ViewBag.acceptedAppointments += trainer.Appointments.Count(a => a.Status == 1);
-    //         ViewBag.requestedAppointments += trainer.Appointments.Count(a => a.Status == 0);
-    //     }
-    //     return View(gym); // Burada view döndürmesin.
-    // }
 
     [HttpPost]
     [Authorize(Roles = Roles.RoleAdmin)]

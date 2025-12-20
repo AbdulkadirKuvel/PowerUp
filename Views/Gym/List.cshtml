@@ -50,7 +50,7 @@
 
                             <div class="gym-info">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <span>@gym.Address</span>
+                                <span style="margin-left: .3vw;"> @gym.Address</span>
                             </div>
 
                             <div class="price-tags mt-auto">
@@ -126,12 +126,12 @@
                                 action: () => {
                                     // Antrenör listesine yönlendir
                                     // Eğer filtreleme yapabiliyorsan ?gymId=... ekleyebilirsin
-                                    window.location.href = '/Trainer'; 
+                                    window.location.href = '/Trainer';
                                 }
                             }
                         ]
                     });
-                } 
+                }
                 // SENARYO 2: Antrenör Yoksa (Onaylı Silme)
                 else {
                     window.DialogBox.show({
@@ -171,7 +171,7 @@
         function performDelete(id) {
             // MVC Controller'daki [HttpPost] Delete metodunu tetiklemek için sanal bir form oluşturuyoruz.
             // Fetch kullanırsak redirect işlemini manuel yönetmek gerekir, form post daha temizdir.
-            
+
             var form = document.createElement('form');
             form.method = 'POST';
             form.action = '/Gym/Delete/' + id;

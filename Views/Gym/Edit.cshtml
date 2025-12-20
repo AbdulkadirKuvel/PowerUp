@@ -8,84 +8,116 @@
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-lg border-0 content-card">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Spor Salonunu Düzenle</h5>
+        <div class="col-md-9">
+            <div class="card shadow-lg border-0" style="background-color: #1e1e1e; color: #e0e0e0;">
+                
+                <div class="card-header border-bottom border-secondary bg-transparent py-3">
+                    <h4 class="mb-0 text-white">
+                        <i class="fas fa-edit me-2 text-danger"></i>Spor Salonunu Düzenle
+                    </h4>
                 </div>
+
                 <div class="card-body p-4">
                     <form method="post" asp-action="Edit">
                         <input type="hidden" asp-for="Id" />
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label text-muted">İsim</label>
-                                <input type="text" class="form-control bg-dark text-white border-secondary" id="name" asp-for="Name" required>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="name" class="form-label text-muted small text-uppercase fw-bold">Salon İsmi</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-danger"><i class="fas fa-dumbbell"></i></span>
+                                    <input type="text" class="form-control bg-dark text-white border-secondary" id="name" asp-for="Name" placeholder="Örn: PowerUp Kadıköy" required>
+                                </div>
                                 <span asp-validation-for="Name" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="address" class="form-label text-muted">Adres</label>
-                                <input type="text" class="form-control bg-dark text-white border-secondary" id="address" asp-for="Address" required>
+                            <div class="col-md-6">
+                                <label for="address" class="form-label text-muted small text-uppercase fw-bold">Adres</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-danger"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="text" class="form-control bg-dark text-white border-secondary" id="address" asp-for="Address" placeholder="Açık adres giriniz" required>
+                                </div>
                                 <span asp-validation-for="Address" class="text-danger small"></span>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="monthlyPrice" class="form-label text-muted">Aylık Fiyat (₺)</label>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="openingTime" class="form-label text-muted small text-uppercase fw-bold">Açılış Saati</label>
+                                <input type="time" class="form-control bg-dark text-white border-secondary" id="openingTime" asp-for="OpeningTime" required>
+                                <span asp-validation-for="OpeningTime" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="closingTime" class="form-label text-muted small text-uppercase fw-bold">Kapanış Saati</label>
+                                <input type="time" class="form-control bg-dark text-white border-secondary" id="closingTime" asp-for="ClosingTime" required>
+                                <span asp-validation-for="ClosingTime" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="monthlyPrice" class="form-label text-muted small text-uppercase fw-bold">Aylık Üyelik</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-secondary border-secondary text-white">₺</span>
+                                    <span class="input-group-text bg-dark border-secondary text-danger fw-bold">₺</span>
                                     <input type="number" class="form-control bg-dark text-white border-secondary" id="monthlyPrice" asp-for="MonthlyPrice" required>
                                 </div>
+                                <span asp-validation-for="MonthlyPrice" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="annuallyPrice" class="form-label text-muted">Yıllık Fiyat (₺)</label>
+                            <div class="col-md-6">
+                                <label for="annuallyPrice" class="form-label text-muted small text-uppercase fw-bold">Yıllık Üyelik</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-secondary border-secondary text-white">₺</span>
+                                    <span class="input-group-text bg-dark border-secondary text-danger fw-bold">₺</span>
                                     <input type="number" class="form-control bg-dark text-white border-secondary" id="annuallyPrice" asp-for="AnnuallyPrice" required>
                                 </div>
+                                <span asp-validation-for="AnnuallyPrice" class="text-danger small"></span>
                             </div>
                         </div>
 
                         <hr class="border-secondary my-4">
 
-                        <h6 class="text-warning mb-3">Özellikler & İmkanlar</h6>
+                        <h5 class="text-white mb-3"><i class="fas fa-star text-danger me-2"></i>Özellikler & İmkanlar</h5>
+                        <p class="text-muted small mb-3">Salonunuzda bulunan özellikleri işaretleyiniz.</p>
 
-                        <div class="mb-3">
-                            <label class="form-label text-muted mb-2">Mevcut Özellikleri Güncelle:</label>
-                            <div class="row g-3">
-                                @foreach (var feature in availableFeatures)
-                                {
-                                    // Bu özellik şu anki Gym'de var mı kontrolü
-                                    bool isChecked = Model.Features.Any(f => f.Id == feature.Id);
+                        <div class="row g-3 mb-4">
+                            @foreach (var feature in availableFeatures)
+                            {
+                                // Özellik seçili mi kontrolü
+                                bool isChecked = Model.Features.Any(f => f.Id == feature.Id);
 
-                                    <div class="col-md-4 col-sm-6">
-                                        <div class="form-check p-2 border border-secondary rounded custom-checkbox-hover @(isChecked ? "bg-secondary bg-opacity-25" : "")">
-                                            <input class="form-check-input ms-1" type="checkbox" 
-                                                   name="selectedFeatureIds" 
-                                                   value="@feature.Id" 
-                                                   id="feature_@feature.Id"
-                                                   @(isChecked ? "checked" : "")>
-                                            <label class="form-check-label ms-2 text-light" for="feature_@feature.Id">
-                                                <i class="@feature.IconClass me-1 text-warning"></i> @feature.Name
-                                            </label>
-                                        </div>
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-check p-2 border border-secondary rounded d-flex align-items-center @(isChecked ? "bg-danger bg-opacity-10 border-danger" : "bg-dark")" 
+                                         style="transition: all 0.3s ease;">
+                                        
+                                        <input class="form-check-input ms-1 me-2" type="checkbox" 
+                                               style="background-color: #2a2a2a; border-color: #444;"
+                                               name="selectedFeatureIds" 
+                                               value="@feature.Id" 
+                                               id="feature_@feature.Id"
+                                               @(isChecked ? "checked" : "")>
+                                        
+                                        <label class="form-check-label text-light w-100 cursor-pointer" for="feature_@feature.Id">
+                                            <i class="@feature.IconClass me-2 text-danger"></i> @feature.Name
+                                        </label>
                                     </div>
-                                }
-                            </div>
+                                </div>
+                            }
                         </div>
 
                         <div class="mb-4">
-                            <label for="customFeatures" class="form-label text-muted">Yeni Özellik Ekle (Virgülle ayırarak)</label>
+                            <label for="customFeatures" class="form-label text-muted small text-uppercase fw-bold">Listede Olmayan Yeni Özellik Ekle</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-secondary border-secondary text-white"><i class="fas fa-plus"></i></span>
-                                <input type="text" class="form-control bg-dark text-white border-secondary" id="customFeatures" name="customFeatures" placeholder="Örn: Masaj, Pilates">
+                                <span class="input-group-text bg-dark border-secondary text-white"><i class="fas fa-plus text-danger"></i></span>
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="customFeatures" name="customFeatures" placeholder="Örn: Vitamin Bar, Masaj (Virgülle ayırın)">
                             </div>
+                            <div class="form-text text-muted">Mevcut listede bulamadığınız özellikleri buraya yazarak ekleyebilirsiniz.</div>
                         </div>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                            <a asp-action="List" class="btn btn-outline-secondary px-4">İptal</a>
-                            <button type="submit" class="btn btn-warning px-4">Güncelle</button>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top border-secondary">
+                            <a asp-action="List" class="btn btn-outline-secondary px-4 me-md-2">
+                                <i class="fas fa-times me-1"></i> İptal
+                            </a>
+                            <button type="submit" class="btn btn-danger px-5 fw-bold shadow-sm">
+                                <i class="fas fa-save me-1"></i> Değişiklikleri Kaydet
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -94,3 +126,18 @@
     </div>
 </div>
 
+<script>
+    // Checkbox tıklandığında kutunun rengini anlık değiştirir
+    document.querySelectorAll('.form-check-input').forEach(item => {
+        item.addEventListener('change', event => {
+            const parentDiv = event.target.closest('.form-check');
+            if (event.target.checked) {
+                parentDiv.classList.remove('bg-dark');
+                parentDiv.classList.add('bg-danger', 'bg-opacity-10', 'border-danger');
+            } else {
+                parentDiv.classList.add('bg-dark');
+                parentDiv.classList.remove('bg-danger', 'bg-opacity-10', 'border-danger');
+            }
+        })
+    })
+</script>
